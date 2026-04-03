@@ -2567,58 +2567,14 @@ out skel qt;
     // Some addons depend on specific GeoFS UI elements being present first.
     // -------------------------------------------------------------------------
 
-    // Realism Pack — wait for the JOBS button before loading
-    let realismRun = false;
-    const jobsBtn = Array.from(document.querySelectorAll(".control-pad-label.transp-pad"))
-    .find(el => el.textContent.trim() === "JOBS");
-    if (jobsBtn && !realismRun) {
-        realism();
-        realismRun = true;
-    }
-    const jobsObserver = new MutationObserver(() => {
-        const jobsBtn = Array.from(document.querySelectorAll(".control-pad-label.transp-pad"))
-        .find(el => el.textContent.trim() === "JOBS");
-        if (jobsBtn && !realismRun) {
-            realism();
-            realismRun = true;
-            jobsObserver.disconnect();
-        }
-    });
-    jobsObserver.observe(document.body, { childList: true, subtree: true });
+    // Realism Pack — delayed to ensure GeoFS DOM and job UI is stable
+    setTimeout(realism, 2000);
 
-    // Extra Vehicles — wait for the livery selector button before loading
-    let scriptRun = false;
-    const LSBtn = document.getElementById("liverybutton");
-    if (LSBtn && !scriptRun) {
-        vehicles();
-        scriptRun = true;
-    }
-    const observer = new MutationObserver(() => {
-        const LSBtn = document.getElementById("liverybutton");
-        if (LSBtn && !scriptRun) {
-            vehicles();
-            scriptRun = true;
-            observer.disconnect();
-        }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
+    // Extra Vehicles — delayed to ensure Realism Pack's livery selector has loaded
+    setTimeout(vehicles, 5000);
 
-    // Jetbridge — wait for the #extras-button before loading
-    let scriptsRun = false;
-    const extrasBtn = document.getElementById("extras-button");
-    if (extrasBtn && !scriptsRun) {
-        jetbridge();
-        scriptsRun = true;
-    }
-    const extrasObserver = new MutationObserver(() => {
-        const extrasBtn = document.getElementById("extras-button");
-        if (extrasBtn && !scriptsRun) {
-            jetbridge();
-            scriptsRun = true;
-            extrasObserver.disconnect();
-        }
-    });
-    extrasObserver.observe(document.body, { childList: true, subtree: true });
+    // Jetbridge — delayed to ensure Extra Vehicles 'extras-button' has loaded
+    setTimeout(jetbridge, 8000);
 
     // GMenu fix — hide the GMenu panel on load to prevent it opening/closing
     // alongside the GeoFS preferences panel (they share a toggle state)
