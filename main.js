@@ -278,19 +278,19 @@ if (typeof unsafeWindow === "undefined") {
         #hudMinimizeBtn {
             position: fixed;
             top: 70px;
-            right: 20px;
-            width: 36px;
-            height: 36px;
+            right: 260px;
+            width: 30px;
+            height: 30px;
             background: linear-gradient(145deg, rgba(10,18,30,0.85), rgba(20,35,55,0.80));
             border: 1px solid rgba(100,200,255,0.25);
-            border-radius: 8px;
+            border-radius: 7px;
             color: rgba(100,200,255,0.8);
-            font-size: 16px;
+            font-size: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            z-index: 100001;
+            z-index: 100002;
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
@@ -504,7 +504,7 @@ function menus() {
             'Flight path vector': 'Shows approximately where your flight path intersects the ground. Hidden by pressing [Insert].',
             'Fuel': 'Simulates fuel consumption. To refuel, you must be on the ground, stationary, and have engines off.',
             'GPWS': 'Adds GPWS callouts (airliners). For minimums to work, type in the BAROMETRIC (MSL) minimum altitude.',
-            'Information display': 'Displays IAS, Mach, GS, ALT, AGL, HDG, V/S, THR, AOA, Glideslope, G-force, and fuel. Draggable. Toggle by pressing [ \\ ].',
+            'Information display': 'Displays IAS, Mach, GS, ALT, AGL, HDG, V/S, THR, AOA, Glideslope, G-force, and fuel. Draggable. Toggle by pressing [ K ].',
             'Jetbridge': 'Loads a jetbridge which you can adjust the position of.',
             'Landing stats': 'Upon landing, displays V/S, G-forces, airspeed, roll, tilt, TDZ accuracy, and a landing score.',
             'Overpowered engines': 'Sets engine thrust to 6x normal and ceiling to 300,000 ft. Toggle using [Q].',
@@ -1787,7 +1787,7 @@ function addonExecution () {
         });
 
         document.addEventListener('keydown', function(e) {
-            if (e.key === '\\' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+            if ((e.key === 'k' || e.key === 'K') && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
                 globalThis.hudVisible = !globalThis.hudVisible;
                 hudMinBtn.style.display = globalThis.hudVisible ? 'flex' : 'none';
             }
@@ -1880,12 +1880,14 @@ function addonExecution () {
                 makeDraggable(y);
             }
 
-            if (!globalThis.hudVisible) {
+            // Always keep the minimize button synced with overall HUD visibility
+            hudMinBtn.style.display = globalThis.hudVisible ? 'flex' : 'none';
+
+            if (!globalThis.hudVisible || globalThis.hudMinimized) {
                 if (y) y.style.display = 'none';
+                if (!globalThis.hudVisible) return;
+                // minimized — keep looping so values stay fresh, but don't render
                 return;
-            } else {
-                if (y && !globalThis.hudMinimized) y.style.display = 'grid';
-                else if (y && globalThis.hudMinimized) y.style.display = 'none';
             }
 
             y.innerHTML =
@@ -1905,7 +1907,12 @@ function addonExecution () {
                 hudCell('CC', e) +
                 hudCell('FUEL', b, fuelWarn);
 
-            flight.recorder.playing ? y.style.display = "none" : y.style.display = "grid";
+            // Only show full HUD when recorder is not playing and not minimized
+            if (flight.recorder.playing) {
+                y.style.display = 'none';
+            } else if (!globalThis.hudMinimized) {
+                y.style.display = 'grid';
+            }
         }, 100);
     };
 
