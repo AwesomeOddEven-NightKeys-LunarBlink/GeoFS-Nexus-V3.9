@@ -1,6 +1,19 @@
-//set up gm functions so that the scripts can work without tampermonkey
+// =============================================================================
+// GeoFS NEXUS V3.9 — Community Userscript Bundle
+// Target: geo-fs.com (GeoFS flight simulator)
+// Description: Bundles 25+ community addons into a single injectable script.
+//              Includes AI ATC, flight systems, realism, UI improvements, etc.
+// =============================================================================
+
+// =============================================================================
+// SECTION 1: GM API SHIMS
+// These polyfills allow addon scripts originally written for Tampermonkey to
+// work in plain browser environments (e.g. injected via the console or a
+// browser extension that does not expose GM_* globals).
+// =============================================================================
+
 if (typeof unsafeWindow === "undefined") {
-  window.unsafeWindow = window;
+    window.unsafeWindow = window;
 }
 (function () {
     const GM_resources = {
@@ -79,10 +92,12 @@ if (typeof unsafeWindow === "undefined") {
   }
 })();
 
-function nav () { //betternav must run before geofs loads in
-    (() => {var navScript = document.createElement('script'); navScript.src="https://raw.githack.com/RadioactivePotato/Better-GeoFS-NAV-Map/refs/heads/main/userscript.js";document.body.appendChild(navScript);})()
-};
-nav();
+// =============================================================================
+// SECTION 2: RANDOM JOBS ADDON
+// Loads the Random Jobs addon (by scitor), which shows departure flights from
+// the nearest airport and tracks career statistics.
+// Also injects a CSS fix for airline icon sizing and syncs METAR text.
+// =============================================================================
 
 function jobs() {
     function loadScript(src) {
@@ -115,7 +130,7 @@ function jobs() {
             await loadScript(base + file);
         }
 
-        // Once all are loaded
+        // Set the repo base URL once all scripts are ready (used internally by the jobs mod)
         window.githubRepo = "https://raw.githubusercontent.com/scitor/GeoFS/master";
 
         let wait = 1;
@@ -153,7 +168,9 @@ function jobs() {
             target.textContent = "METAR: INOP";
         }
     }
-    //wait for jobs window to appear
+
+    // Wait for the jobs window to appear in the DOM, then apply z-index fix
+    // and begin syncing METAR from the GeoFS weather display element
     let zIndexRun = false;
     const jobsWindow = document.querySelector(".jobs-window");
     if (jobsWindow && !zIndexRun) {
@@ -177,7 +194,21 @@ function jobs() {
 };
 jobs();
 
+// =============================================================================
+// SECTION 3: PREFERENCE PANEL MENUS
+// Injects collapsible dropdown sections into the GeoFS preferences panel
+// (the gear icon menu). Each sub-function adds one top-level dropdown:
+//   - Addons     : Lists all active addons with expandable descriptions
+//   - Procedures : Flight rules, ATC phraseology, climb/descent procedures
+//   - Failures   : Emergency checklists for each system failure type
+//   - Aircraft   : Per-aircraft procedures and failure references
+// =============================================================================
+
 function menus() {
+
+    // -------------------------------------------------------------------------
+    // Addon Manager — collapsible list of all active addons with descriptions
+    // -------------------------------------------------------------------------
     function createAddonManager() {
         const geofsPreferencesPanel = document.querySelector('.geofs-list.geofs-toggle-panel.geofs-preference-list');
 
@@ -211,8 +242,7 @@ function menus() {
             dropdownIcon.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(90deg)';
         };
 
-
-            //ADDON DESCRIPTIONS GO HERE:
+        // Addon name → description text shown when the user expands an addon entry
         const descriptions = {
             'AI ATC': `Uses PuterJS GPT and speech-to-text to provide AI air traffic control
             Send a voice message by clicking the headset icon or type a message using Ctrl+click. Pressing [D] acts as a push-to-talk key. By right-clicking the headset icon, you can configure whether it sends a voice or a text transmission.
@@ -228,17 +258,12 @@ function menus() {
             'Autothrottle': `Regulates aircraft speed while retaining pilot control. Press [/] to turn it on and off. To arm it to auto-disable on touchdown, turn on LND MODE or arm Autoland++ `,
 
 
-            'Better NAV Map': `Changes the navigation map of GeoFS to another tile provider`,
-
-
             'Camera cycling': `
             ***Disabled due to keybinds interfering with flightradar addon - see github page***
             Randomly cycles through the camera angles for each airplane every 30 seconds. You can toggle this on and off by pressing [W]. By default, it excludes cockpit-less cam, free cam, chase cam and fixed cam.`,
           
 
-            'Charts': `Display airport taxi charts in GeoFS, with a search feature for ICAO codes, fetching data from GitHub.`,
 
-            
             'Chat fix': `Fixes the removal of the t keybind for opening the chat window in GeoFS.`,
 
 
@@ -358,7 +383,10 @@ function menus() {
 
             'UI tweaks': `Adds a popout chat. Mouse wheel functionality was added to GeoFS natively.
             
-            `
+            `,
+            'Streetlights': `Adds streetlights to the GeoFS map during nighttime.`,
+            'Maritime Structures': `Adds extra maritime structures to the environment.`,
+            'Utilities': `Adds various utility functions for GeoFS.`
         };
         
         function addAddon(name) {
@@ -402,14 +430,13 @@ function menus() {
             addonListItem.appendChild(addonItem);
             addonListItem.appendChild(addonContent);
         }
-        //ADDON NAMES GO HERE:
+
+        // Register each addon entry in alphabetical order
         addAddon('AI ATC');
         addAddon('Ad remover');
         addAddon('Autoland++');
         addAddon('Autothrottle');
-        addAddon('Better NAV Map');
         addAddon('Camera cycling');
-        addAddon('Charts');
         addAddon('Chat fix');
         addAddon('Cockpit volume');
         addAddon('Extra vehicles');
@@ -426,6 +453,9 @@ function menus() {
         addAddon('Realism pack');
         addAddon('Sky Dolly');
         addAddon('Slew mode');
+        addAddon('Streetlights');
+        addAddon('Maritime Structures');
+        addAddon('Utilities');
         addAddon('Taxiway lights');
         addAddon('Taxiway signs');
         addAddon('UI tweaks');
@@ -434,7 +464,9 @@ function menus() {
         geofsPreferencesPanel.appendChild(addonListItem);
     }
 
-
+    // -------------------------------------------------------------------------
+    // Procedures — flight rules, ATC scripts, and phase-of-flight checklists
+    // -------------------------------------------------------------------------
     function createInstructions() {
         const geofsPreferencesPanel = document.querySelector('.geofs-list.geofs-toggle-panel.geofs-preference-list');
 
@@ -470,11 +502,7 @@ function menus() {
             dropdownIcon.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(90deg)';
         };
 
-
-
-
-        
-            //INSTRUCTIONS GO HERE:
+        // Procedure name → detailed description text
         const descriptions = {
             'Preflight procedures': `Review procedures
             Load/create flight plan
@@ -911,7 +939,8 @@ function menus() {
             instructionListItem.appendChild(instructionItem);
             instructionListItem.appendChild(instructionContent);
         }
-        //INSTRUCTION ITEMS GO HERE:
+
+        // Register each procedure entry in flight-order
         addInstruction('Preflight procedures');
         addInstruction('VFR rules');
         addInstruction('IFR rules');
@@ -925,7 +954,9 @@ function menus() {
         geofsPreferencesPanel.appendChild(instructionListItem);
     }
 
-
+    // -------------------------------------------------------------------------
+    // Failures — emergency procedures for each aircraft system failure
+    // -------------------------------------------------------------------------
     function createFailures() {
         const geofsPreferencesPanel = document.querySelector('.geofs-list.geofs-toggle-panel.geofs-preference-list');
 
@@ -961,10 +992,7 @@ function menus() {
             dropdownIcon.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(90deg)';
         };
 
-
-
-
-            //FAILURES GO HERE:
+        // Failure type → emergency procedure text
         const descriptions = {
             'Electrical': `1. Identify and manage the failure:
             - Check circuit breakers and reset if safe to do so.
@@ -1134,7 +1162,8 @@ function menus() {
             failureListItem.appendChild(failureItem);
             failureListItem.appendChild(failureContent);
         }
-        //FAILURE ITEMS HERE:
+
+        // Register each failure entry
         addfailure('Electrical');
         addfailure('Fuel leak/starvation');
         addfailure('Gear');
@@ -1147,15 +1176,138 @@ function menus() {
         geofsPreferencesPanel.appendChild(failureListItem);
     }
 
+    // -------------------------------------------------------------------------
+    // Aircraft — per-aircraft type submenu with Procedures and Failures sections
+    // -------------------------------------------------------------------------
+    function createAircraftMenus() {
+        const geofsPreferencesPanel = document.querySelector('.geofs-list.geofs-toggle-panel.geofs-preference-list');
 
+        const topListItem = document.createElement('li');
+        topListItem.className = 'geofs-list-collapsible-item';
+        topListItem.innerText = 'Aircraft';
+
+        const topDropdownIcon = document.createElement('li');
+        topDropdownIcon.className = 'geofs-collapsible-item::before';
+        topDropdownIcon.style.marginRight = '5px';
+        topListItem.appendChild(topDropdownIcon);
+
+        const topContent = document.createElement('div');
+        topContent.className = 'geofs-list';
+        topContent.style.display = 'none';
+        topListItem.appendChild(topContent);
+
+        topListItem.onclick = (event) => {
+            event.stopPropagation();
+            const isVisible = topContent.style.display === 'block';
+            topContent.style.display = isVisible ? 'none' : 'block';
+            topDropdownIcon.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(90deg)';
+        };
+
+        function createCategory(name, parentContent) {
+            const catItem = document.createElement('li');
+            catItem.className = 'geofs-list-collapsible-item';
+            catItem.innerText = name;
+            catItem.style.marginLeft = '15px';
+
+            const catIcon = document.createElement('li');
+            catIcon.className = 'geofs-collapsible-item::before';
+            catIcon.style.marginRight = '5px';
+            catItem.appendChild(catIcon);
+
+            const catContent = document.createElement('div');
+            catContent.className = 'geofs-list';
+            catContent.style.display = 'none';
+            catItem.appendChild(catContent);
+
+            catItem.onclick = (event) => {
+                event.stopPropagation();
+                const isVisible = catContent.style.display === 'block';
+                catContent.style.display = isVisible ? 'none' : 'block';
+                catIcon.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(90deg)';
+            };
+
+            parentContent.appendChild(catItem);
+            return catContent;
+        }
+
+        const proceduresContent = createCategory('Procedures', topContent);
+        const failuresContent = createCategory('Failures', topContent);
+
+        function createAircraftSubmenu(aircraftName, parentContent) {
+            const acItem = document.createElement('li');
+            acItem.className = 'geofs-list-collapsible-item';
+            acItem.innerText = aircraftName;
+            acItem.style.marginLeft = '15px';
+
+            const acIcon = document.createElement('li');
+            acIcon.className = 'geofs-collapsible-item::before';
+            acIcon.style.marginRight = '5px';
+            acItem.appendChild(acIcon);
+
+            const acContent = document.createElement('div');
+            acContent.className = 'geofs-list';
+            acContent.style.display = 'none';
+            acItem.appendChild(acContent);
+
+            acItem.onclick = (event) => {
+                event.stopPropagation();
+                const isVisible = acContent.style.display === 'block';
+                acContent.style.display = isVisible ? 'none' : 'block';
+                acIcon.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(90deg)';
+            };
+
+            const placeholder = document.createElement('li');
+            placeholder.className = 'geofs-list-item-description';
+            placeholder.innerText = 'No specifics available yet.';
+            placeholder.style.paddingRight = '15px';
+            placeholder.style.lineHeight = '1.1';
+            acContent.appendChild(placeholder);
+
+            parentContent.appendChild(acItem);
+        }
+
+        const aircrafts = [
+            'Airbus A32X',
+            'Airbus A33X',
+            'Airbus A35X',
+            'Airbus A38X',
+            'Boeing B737X',
+            'Boeing B747X',
+            'Boeing B757X',
+            'Boeing B777X',
+            'Boeing B787X'
+        ];
+
+        aircrafts.forEach(ac => {
+            createAircraftSubmenu(ac, proceduresContent);
+            createAircraftSubmenu(ac, failuresContent);
+        });
+
+        geofsPreferencesPanel.appendChild(topListItem);
+    }
+
+    // Build all menu sections in order
     createAddonManager();
     createInstructions();
     createFailures();
+    createAircraftMenus();
 };
 
+// =============================================================================
+// SECTION 4: ADDON EXECUTION
+// Each function loads one addon. Scripts hosted externally are injected via a
+// dynamically created <script> tag pointing to raw.githack.com (which serves
+// GitHub files with the correct Content-Type header for browser JS execution).
+// Addons are grouped below by category for readability.
+// =============================================================================
 
 function addonExecution () {
 
+    // -------------------------------------------------------------------------
+    // ATC & COMMUNICATIONS
+    // -------------------------------------------------------------------------
+
+    // AI ATC — PuterJS GPT-powered ATC with voice and text input
     function ai () {
         (function() {
             'use strict';
@@ -1697,14 +1849,21 @@ function addonExecution () {
         })();
     };
 
+    // -------------------------------------------------------------------------
+    // FLIGHT SYSTEMS & AUTOMATION
+    // -------------------------------------------------------------------------
+
+    // Ad Remover — removes banner ads on the GeoFS page
     function adblock () {
         (() => {var adblockScript = document.createElement('script'); adblockScript.src="https://raw.githack.com/RadioactivePotato/GeoFS-Ad-Remover/main/GeoFS%20Ad%20Remover-0.1.user.js";document.body.appendChild(adblockScript);})()
     };
 
+    // Autoland++ — joystick-supported autoland with spoiler/reverse thrust automation
     function autoland () {
         (() => {var autolandScript = document.createElement('script'); autolandScript.src="https://raw.githack.com/geofs-pilot/Joystick-supported-autoland/refs/heads/main/script.js";document.body.appendChild(autolandScript);})()
     };
 
+    // Autothrottle — speed management keybind [/] to toggle on/off
     function athrottle () {
         (() => {var athrScript = document.createElement('script'); athrScript.src="https://raw.githack.com/meatbroc/geofs-autothrottle/main/userscript.js";document.body.appendChild(athrScript);})()
         document.addEventListener('keydown', (e) => {
@@ -1721,27 +1880,29 @@ function addonExecution () {
 
     };
 
+    // Camera Cycling — cycles camera angles every 30s. Toggle with [W]
     function camera () {
         !function(){"use strict";let e=[],t=0,a=null,n=null;function c(){cycling=!1,a&&clearInterval(a)}globalThis.cycling=!1,!function r(){let i=setInterval(()=>{geofs?.camera?.modes&&geofs?.aircraft?.instance&&(clearInterval(i),n=geofs.aircraft.instance.id,setInterval(()=>{if(geofs.aircraft&&geofs.aircraft.instance){let e=geofs.aircraft.instance.id;e!==n&&(n=e,console.log("Stopped cycling due to aircraft change"),c())}},1e3),document.addEventListener("keydown",function(n){"w"!==n.key.toLowerCase()||n.ctrlKey||n.altKey||n.metaKey||((cycling=!cycling)?(console.log("Camera cycling started."),!geofs.camera||!geofs.camera.modes||(a&&clearInterval(a),function a(){let n=[2,3,4,5];e=geofs.camera.modes.map((e,t)=>t).filter(e=>!n.includes(e));for(let c=e.length-1;c>0;c--){let r=Math.floor(Math.random()*(c+1));[e[c],e[r]]=[e[r],e[c]]}t=0}(),a=setInterval(()=>{!geofs.pause&&cycling&&e.length>0&&(geofs.camera.set(e[t]),console.log("Switched to camera:",e[t]),t=(t+1)%e.length)},3e4))):(c(),console.log("Camera cycling stopped.")))}),console.log("Script running. Press 'W' to toggle."))},500)}()}();    
     };
 
-    function charts () {
-        (() => {var chartScript = document.createElement('script'); chartScript.src="https://raw.githack.com/mansoorbarri/geofs-charts/refs/heads/main/main.js";document.body.appendChild(chartScript);})()
-    };
-
+    // Chat Fix — restores the [T] keybind for opening the in-game chat window
     function chatFix() {
         (() => {var fixScript = document.createElement('script'); fixScript.src="https://raw.githack.com/ZetaPossibly/GeoFS-Chat-Fix/refs/heads/main/fix_chat.js";document.body.appendChild(fixScript);})()
     }
 
+    // Cockpit Volume — lowers engine audio when in interior camera views
     function volume () {
         (() => {var volumeScript = document.createElement('script'); volumeScript.src="https://raw.githack.com/geofs-pilot/geofs-cockpit-volume/main/userscript.js";document.body.appendChild(volumeScript);})()
     };
 
+    // Extra Vehicles — loads additional community-made aircraft (by JXT)
+    // Note: delayed until the livery selector button appears in the DOM
     function vehicles () {
         (() => {var vehicleScript = document.createElement('script'); vehicleScript.src="https://raw.githack.com/af267/GeoFS-Extra-Vehicles/main/main.js";document.body.appendChild(vehicleScript);})()
     };
 
-    function failuresAndFuel () {   		//Includes both fuel and failures
+    // Failures & Fuel — combined system failures addon and fuel burn simulation
+    function failuresAndFuel () {
         class Failure{constructor(){this.aId=window.geofs.aircraft.instance.id,this.enabled=!1,this.failures=[],this.mcasTime=0,this.fails={landingGear:{front:!1,left:!1,right:!1},fuelLeak:!1,flightCtrl:{ailerons:!1,elevators:!1,rudder:!1},electrical:!1,structural:!1,hydraulic:{flaps:!1,brakes:!1,spoilers:!1},pitotStatic:!1,pressurization:!1,engines:[],mcas:!1};for(var e=0;e<window.geofs.aircraft.instance.engines.length;e++)this.fails.engines.push({i:!1});this.chances={landingGear:{front:0,left:0,right:0},fuelLeak:0,flightCtrl:{ailerons:0,elevators:0,rudder:0},electrical:0,structural:0,hydraulic:{flaps:0,brakes:0,spoilers:0},pitotStatic:0,pressurization:0,engines:[],mcas:0};for(var t=0;t<window.geofs.aircraft.instance.engines.length;t++)this.chances.engines.push({v:0})}fail(e){for(var t=window.geofs.aircraft.instance.engines.length,i=0;i<t;i++)e=="engine"+i&&(alert("Engine "+(i+1)+" failed!"),window.geofs.aircraft.instance.engines[i].thrust=0,new window.geofs.fx.ParticleEmitter({off:0,anchor:window.geofs.aircraft.instance.engines[0].points.contrailAnchor||{worldPosition:window.geofs.aircraft.instance.engines[0].object3d.worldPosition},duration:1e10,rate:.03,life:1e4,easing:"easeOutQuart",startScale:.01,endScale:.2,randomizeStartScale:.01,randomizeEndScale:.15,startOpacity:1,endOpacity:.2,startRotation:"random",texture:"whitesmoke"}),setInterval(()=>{window.geofs.fx.setParticlesColor(new window.Cesium.Color(.1,.1,.1,1))},20));if(!e.includes("engine"))switch(e){case"fuelLeak":this.fails.fuelLeak||(alert("Fuel leak! About 2 minutes of fuel remaining at 50% throttle"),this.fails.fuelLeak=!0,globalThis.leakingFuel=!0);break;case"gearFront":if(!this.fails.landingGear.front){alert("Nose gear failure"),this.fails.landingGear.front=!0;var a=2;for(i=0;i<window.geofs.aircraft.instance.suspensions.length;i++)(window.geofs.aircraft.instance.suspensions[i].name.includes("front")||window.geofs.aircraft.instance.suspensions[i].name.includes("nose")||window.geofs.aircraft.instance.suspensions[i].name.includes("tail"))&&(a=i);this.failures.push(setInterval(()=>{window.geofs.aircraft.instance.suspensions[a].collisionPoints[0][2]=30},1e3))}break;case"gearLeft":if(!this.fails.landingGear.left){alert("Left gear failure"),this.fails.landingGear.left=!0;var n=0;for(i=0;i<window.geofs.aircraft.instance.suspensions.length;i++)(window.geofs.aircraft.instance.suspensions[i].name.includes("left")||window.geofs.aircraft.instance.suspensions[i].name.includes("l"))&&(n=i);this.failures.push(setInterval(()=>{window.geofs.aircraft.instance.suspensions[n].collisionPoints[0][2]=30},1e3))}break;case"gearRight":if(alert("Right gear failure"),!this.fails.landingGear.right){this.fails.landingGear.right=!0;var l=1;for(i=0;i<window.geofs.aircraft.instance.suspensions.length;i++)(window.geofs.aircraft.instance.suspensions[i].name.includes("right")||window.geofs.aircraft.instance.suspensions[i].name.includes("r_g"))&&(l=i);this.failures.push(setInterval(()=>{window.geofs.aircraft.instance.suspensions[l].collisionPoints[0][2]=30},1e3))}break;case"ailerons":alert("Flight control failure (ailerons)"),this.fails.flightCtrl.ailerons||(this.fails.flightCtrl.ailerons=!0,this.failures.push(setInterval(()=>{for(var e in window.geofs.aircraft.instance.airfoils)window.geofs.aircraft.instance.airfoils[e].name.toLowerCase().includes("aileron")&&(window.geofs.aircraft.instance.airfoils[e].object3d._scale=[0,0,0])},1e3)));break;case"elevators":alert("Flight control failure (elevators)"),this.fails.flightCtrl.elevators||(this.fails.flightCtrl.elevators=!0,this.failures.push(setInterval(()=>{for(var e in window.geofs.aircraft.instance.airfoils)window.geofs.aircraft.instance.airfoils[e].name.toLowerCase().includes("elevator")&&(window.geofs.aircraft.instance.airfoils[e].object3d._scale=[0,0,0])},1e3)));break;case"rudder":alert("Flight control failure (rudder)"),this.fails.flightCtrl.rudder||(this.fails.flightCtrl.rudder=!0,this.failures.push(setInterval(()=>{for(var e in window.geofs.aircraft.instance.airfoils)window.geofs.aircraft.instance.airfoils[e].name.toLowerCase().includes("rudder")&&(window.geofs.aircraft.instance.airfoils[e].object3d._scale=[0,0,0])},1e3)));break;case"electrical":this.fails.electrical||(alert("Electrical failure"),this.fails.electrical=!0,this.failures.push(setInterval(()=>{for(var e=1;e<=5;e++)window.geofs.aircraft.instance.cockpitSetup.parts[e].object3d._scale=[0,0,0];window.geofs.autopilot.turnOff(),window.instruments.hide()},1e3)));break;case"structural":this.fails.structural||(alert("Significant structural damage detected"),console.log("Boeing, am I right?"),this.fails.structural=!0,this.failures.push(setInterval(()=>{window.weather.definition.turbulences=3},1e3)));break;case"flaps":this.fails.hydraulic.flaps||(alert("Hydraulic failure (flaps)"),this.fails.hydraulic.flaps=!0,this.failures.push(setInterval(()=>{window.controls.flaps.target=Math.floor(.6822525475345469*(2*window.geofs.animation.values.flapsSteps)),window.controls.flaps.delta=20},1e3)));break;case"brakes":this.fails.hydraulic.brakes||(alert("Hydraulic failure (brakes)"),this.fails.hydraulic.brakes=!0,this.failures.push(setInterval(()=>{window.controls.brakes=0},500)));break;case"spoilers":this.fails.hydraulic.spoilers||(alert("Hydraulic failure (spoilers)"),this.fails.hydraulic.spoilers=!0,this.failures.push(setInterval(()=>{window.controls.airbrakes.target=.2,window.controls.airbrakes.delta=20},1e3)));break;case"pressurization":this.fails.pressurization||(alert("Cabin depressurization! Get at or below 9,000 ft MSL!"),this.fails.pressurization=!0,this.failures.push(setInterval(()=>{window.geofs.animation.values.altitude>9e3?window.weather.definition.turbulences=(window.geofs.animation.values.altitude-9e3)/5200:window.weather.definition.turbulences=0}),1e3));break;case"mcas":this.fails.mcas||(this.fails.mcas=!0,this.mcasTime=Date.now(),this.mcasRandT=Math.floor(1e4*Math.random()),this.mcasActive=!0,window.controls.elevatorTrimMin=-10,this.failures.push(setInterval(()=>{!window.geofs.autopilot.on&&0==window.controls.flaps.position&&this.fails.mcas&&(this.mcasActive&&Date.now()<=this.mcasTime+this.mcasRandT?window.controls.elevatorTrim>window.controls.elevatorTrimMin&&(window.controls.elevatorTrim-=window.controls.elevatorTrimStep/10):this.mcasActive?(this.mcasActive=!1,this.mcasTime+=this.mcasRandT,this.mcasRandT=Math.floor(1e4*Math.random())):!this.mcasActive&&Date.now()>=this.mcasTime+5e3&&(this.mcasActive=!0,this.mcasTime+=5e3,window.controls.elevatorTrim>window.controls.elevatorTrimMin&&(window.controls.elevatorTrim-=window.controls.elevatorTrimStep/10)))},40)))}}tick(){if(this.enabled&&!window.flight.recorder.playing&&!window.geofs.pause){for(var e in console.log("tick"),this.chances.landingGear)Math.random()<this.chances.landingGear[e]&&this.fail("gear"+(e[0].toUpperCase()+e.substr(1,e.length)));for(var t in this.chances)if("number"==typeof this.chances[t])Math.random()<this.chances[e]&&this.fail(t);else if("landingGear"!==t)for(var i in this.chances[t])Math.random()<this.chances[t][i]&&this.fail(i);setTimeout(()=>{this.tick()},6e4)}}reset(){for(var e in this.failures)clearInterval(this.failures[e]);this.enabled=!1}}function waitForEntities(){try{if(!1==window.geofs.cautiousWithTerrain){window.mainFailureFunction();return}}catch(e){console.log("Error in waitForEntities:",e)}setTimeout(()=>{waitForEntities()},1e3)}function runFuelSystem(){var e,t;function i(){let e=document.createElement("div");e.style.position="absolute",e.style.bottom="8px",e.style.right="108px",e.style.width="75px",e.style.height="17px",e.style.border="1px solid black",e.style.borderRadius="5px",e.style.backgroundColor="black",e.style.zIndex="1000";let t=document.createElement("div");return t.style.height="100%",t.style.width="100%",t.style.backgroundColor="green",t.style.borderRadius="5px",e.appendChild(t),document.querySelector(".geofs-ui-bottom").appendChild(e),{fuelBar:t,fuelBarContainer:e}}let a=null,n;setInterval(()=>{0===r.fuel&&(controls.throttle=0,window.geofs.aircraft.instance.stopEngine())},10);let l,s,r=(s=(l=window.geofs.aircraft.instance.definition.mass)<15e3?.25:.75,globalThis.initialFuel=l*s,{fuel:initialFuel,initialFuel}),u=function e(t){let i=document.createElement("button");return i.textContent="Refuel",i.style.position="absolute",i.style.bottom="5px",i.style.right="108px",i.style.padding="4px 8px",i.style.fontSize="14px",i.style.backgroundColor="yellow",i.style.border="1px solid black",i.style.borderRadius="5px",i.style.zIndex="1000",document.querySelector(".geofs-ui-bottom").appendChild(i),i.addEventListener("click",()=>{t.fuel=t.initialFuel,console.log("Plane refueled.")}),i}(r);e=r,n=setInterval(()=>{if(window.geofs.pause||window.flight.recorder.playing||document.hidden)return;let t=window.geofs.aircraft.instance.engines.reduce((e,t)=>e+(t.thrust||0),0),i=window.geofs.aircraft.instance.engines[0]?.afterBurnerThrust!==void 0,n=i&&Math.abs(window.geofs.animation.values.smoothThrottle)>.9,l=i?window.geofs.aircraft.instance.engines.reduce((e,t)=>e+(t.afterBurnerThrust||0),0):0,s=Math.abs(window.geofs.animation.values.smoothThrottle),r=n?l/150:t/150,u=3*r;if(globalThis.leakingFuel){if(null===a){a=e.fuel;let o=a/120*3600;globalThis.fuelLeakRate=Math.max(0,o-(r+.5*(u-r)))}}else globalThis.fuelLeakRate=0,a=null;let d=window.geofs.aircraft.instance.engine.on?r+s*(u-r):0;0==t&&(d=0),fuelBurnRate=d+globalThis.fuelLeakRate,console.log(globalThis.fuelLeakRate),e.fuel-=fuelBurnRate*(1/3600),e.fuel<0&&(e.fuel=0),globalThis.fuelPercentage=e.fuel/e.initialFuel*100,0===e.fuel&&(window.fuelBurnRate=0),console.log(`Fuel Burn Rate per Hour: ${fuelBurnRate.toFixed(6)}`),console.log(`Fuel Burned This Second: ${(fuelBurnRate/3600).toFixed(6)}`),console.log(`Fuel Remaining: ${e.fuel.toFixed(2)}`)},1e3);let o=window.geofs.aircraft.instance.aircraftRecord.id;setInterval(()=>{window.geofs.aircraft.instance.aircraftRecord.id!==o&&(u.remove(),o=window.geofs.aircraft.instance.aircraftRecord.id,clearInterval(n),runFuelSystem())},1e3),setInterval(()=>{let e=window.geofs.aircraft.instance.groundSpeed,t=window.geofs.aircraft.instance.groundContact,i=window.geofs.aircraft.instance.engine.on;flight.recorder.playing?u.style.display="none":u.style.display=e<1&&t&&!i?"block":"none"},100)}window.openFailuresMenu=function(){if(window.failuresMenu){if(window.failuresMenu.hidden=!window.failuresMenu.hidden,window.geofs.aircraft.instance.id!==window.aId)for(window.failure.reset(),window.failure=new Failure,e=`
         <div style="position: fixed; width: 640px; height: 10px; background: lightgray; cursor: move;" id="dragPart"></div>
         <p style="cursor: pointer;right: 0px;position: absolute;background: gray;height: fit-content;" onclick="window.failuresMenu.hidden=true;">X</p>
@@ -2171,37 +2332,71 @@ function addonExecution () {
             `,window.failuresMenu.innerHTML=e;let i=document.getElementById("failMenu"),a=document.getElementById("dragPart");a.addEventListener("mousedown",function(e){let t=e.clientX-i.getBoundingClientRect().left,a=e.clientY-i.getBoundingClientRect().top;function n(e){i.style.left=`${e.clientX-t}px`,i.style.top=`${e.clientY-a}px`}function l(){document.removeEventListener("mousemove",n),document.removeEventListener("mouseup",l)}document.addEventListener("mousemove",n),document.addEventListener("mouseup",l)})}}},window.mainFailureFunction=function(){"use strict";window.failBtn=document.createElement("div"),window.failBtn.style.position="fixed",window.failBtn.style.right="60px",window.failBtn.style.height="36px",window.failBtn.style.bottom="0px",window.failBtn.style.border="transparent",window.failBtn.style.background="rgb(255,0,0)",window.failBtn.style.color="white",window.failBtn.style.fontWeight="600",window.failBtn.style.fontSize="20px",window.failBtn.style.cursor="pointer",window.failBtn.style.zIndex="10000",document.body.appendChild(window.failBtn),window.failBtn.innerHTML='<button style="position: inherit; right: inherit; height: inherit; top: inherit; border: inherit; background: inherit; color: inherit; font-weight: inherit; fontSize: inherit; cursor: inherit;" onclick="window.openFailuresMenu()">FAIL</button>',setInterval(()=>{flight.recorder.playing?failBtn.style.display="none":failBtn.style.display="block"},100),console.log("Failures loaded.")},waitForEntities(),runFuelSystem();
     };
 
+    // Flight Path Vector — shows where the flight path intersects the ground
+    // Press [Insert] to toggle visibility
     function fpv () {
         function cF(a,t,i){return{x:a,y:t,z:i}}function waitForEntities(){try{if(geofs.api){window.DEGREES_TO_RAD=window.DEGREES_TO_RAD||.017453292519943295,window.RAD_TO_DEGREES=window.RAD_TO_DEGREES||57.29577951308232,main();return}}catch(a){console.log("Error in waitForEntities:",a)}setTimeout(waitForEntities,1e3)}function main(){let a;window.y=geofs.api.viewer.entities.add({position:Cesium.Cartesian3.fromDegrees(geofs.camera.lla[1],geofs.camera.lla[0],geofs.animation.values.groundElevationFeet/3.2808399),billboard:{image:"https://tylerbmusic.github.io/GPWS-files_geofs/FPV.png",scale:.03*(1/geofs.api.renderingSettings.resolutionScale)}}),geofs.api.renderingSettings.resolutionScale<=.6&&(window.y.billboard.image="https://tylerbmusic.github.io/GPWS-files_geofs/FPV_Lowres.png"),window.lastLoc=Cesium.Cartesian3.fromDegrees(geofs.camera.lla[1],geofs.camera.lla[0],geofs.camera.lla[2]),setInterval(function a(){if(geofs.animation.values&&!geofs.isPaused()){window.currLoc&&(window.lastLoc=window.currLoc),window.currLoc=Cesium.Cartesian3.fromDegrees(geofs.camera.lla[1],geofs.camera.lla[0],geofs.camera.lla[2]),window.deltaLoc=[window.currLoc.x-window.lastLoc.x,window.currLoc.y-window.lastLoc.y,window.currLoc.z-window.lastLoc.z];var t,i=void 0!==geofs.animation.values.altitude&&void 0!==geofs.animation.values.groundElevationFeet?Math.round(geofs.animation.values.altitude-geofs.animation.values.groundElevationFeet+3.2808399*geofs.aircraft.instance.collisionPoints[geofs.aircraft.instance.collisionPoints.length-2].worldPosition[2]):"N/A";t=geofs.animation.getValue("NAV1Direction")&&600!==geofs.animation.getValue("NAV1Distance")?"to"===geofs.animation.getValue("NAV1Direction")?(Math.atan(.3048*i/(geofs.animation.getValue("NAV1Distance")+600))*RAD_TO_DEGREES).toFixed(1):(Math.atan(.3048*i/Math.abs(geofs.animation.getValue("NAV1Distance")-600))*RAD_TO_DEGREES).toFixed(1):"N/A",geofs.aircraft.instance.groundContact||window.deltaLoc[0]+window.deltaLoc[1]+window.deltaLoc[2]==0||(window.y.position=cF(window.currLoc.x+window.howFar*window.deltaLoc[0],window.currLoc.y+window.howFar*window.deltaLoc[1],window.currLoc.z+window.howFar*window.deltaLoc[2]))}},geofs.debug.fps?1/Number(geofs.debug.fps)+5:100),a=!0,document.addEventListener("keydown",function(t){"Insert"===t.key&&(a=!a)}),setInterval(()=>{a?window.y.show=!geofs.aircraft.instance.groundContact:window.y.show=!1},100)}window.lastLoc,window.onload=setTimeout(waitForEntities,1e4),window.howFar=15;
     };
 
+    // GPWS — Ground Proximity Warning System callouts for airliners
     function gpws () {
         (() => {var gpwsScript = document.createElement('script'); gpwsScript.src="https://raw.githack.com/geofs-pilot/geofs-gpws-modified/main/gpws.js";document.body.appendChild(gpwsScript);})()
     };
 
+    // Information Display — floating HUD panel (top-right) showing live flight data:
+    // KIAS, Mach, GS, ALT, AGL, HDG, V/S, THR, AOA, GSLOPE, G-force, OP, CC, FUEL
     function info () {
-        setInterval(function n(){if(geofs.animation.values){var a,i,e,o=geofs.animation.values.kias?geofs.animation.values.kias.toFixed(1):"N/A",l=geofs.animation.values.mach?geofs.animation.values.mach.toFixed(2):"N/A",t=geofs.animation.values.groundSpeed?geofs.animation.values.groundSpeed.toFixed(1):"N/A",r=geofs.animation.values.altitude?Math.round(geofs.animation.values.altitude):"N/A",d=geofs.animation.values.heading360?Math.round(geofs.animation.values.heading360):"N/A",$=void 0!==geofs.animation.values.altitude&&void 0!==geofs.animation.values.groundElevationFeet?Math.round(geofs.animation.values.altitude-geofs.animation.values.groundElevationFeet+3.2808399*geofs.aircraft.instance.collisionPoints[geofs.aircraft.instance.collisionPoints.length-2].worldPosition[2]):"N/A",s=void 0!==geofs.animation.values.verticalSpeed?Math.round(geofs.animation.values.verticalSpeed):"N/A",p=!1===geofs.aircraft.instance.engine.on?"OFF":void 0!==geofs.animation.values.throttle?geofs.animation.values.throttle<.005&&geofs.animation.values.throttle>=0?"IDLE":(100*geofs.animation.values.throttle).toFixed(0)+"%":"N/A",c=void 0!==geofs.aircraft.instance.angleOfAttackDeg?geofs.aircraft.instance.angleOfAttackDeg.toFixed(1):"N/A";window.DEGREES_TO_RAD=window.DEGREES_TO_RAD||.017453292519943295,window.RAD_TO_DEGREES=window.RAD_TO_DEGREES||57.29577951308232;var $=void 0!==geofs.animation.values.altitude&&void 0!==geofs.animation.values.groundElevationFeet?Math.round(geofs.animation.values.altitude-geofs.animation.values.groundElevationFeet+3.2808399*geofs.aircraft.instance.collisionPoints[geofs.aircraft.instance.collisionPoints.length-2].worldPosition[2]):"N/A";a=geofs.animation.getValue("NAV1Direction")&&600!==geofs.animation.getValue("NAV1Distance")?"to"===geofs.animation.getValue("NAV1Direction")?(Math.atan(.3048*$/(geofs.animation.getValue("NAV1Distance")+600))*RAD_TO_DEGREES).toFixed(1):(Math.atan(.3048*$/Math.abs(geofs.animation.getValue("NAV1Distance")-600))*RAD_TO_DEGREES).toFixed(1):"N/A";var u=geofs.animation.values.loadFactor.toFixed(1);i=!0==globalThis.isOverpowered?"ON":"OFF",e=!0==globalThis.cycling?"ON":"OFF";var _=globalThis.fuelPercentage,b=void 0!==_?0===_?"0%":_<1?"1%":_.toFixed(0)+"%":"N/A";let g=document.querySelector(".geofs-ui-bottom");if(g){var y=document.getElementById("flightDataDisplay");y||((y=document.createElement("div")).id="flightDataDisplay",y.style.height="36px",y.style.minWidth="64px",y.style.padding="0 16px",y.style.display="inline-block",y.style.fontFamily='"Roboto", "Helvetica", "Arial", sans-serif',y.style.fontSize="14px",y.style.fontWeight="500",y.style.textTransform="uppercase",y.style.overflow="hidden",y.style.willChange="box-shadow",y.style.transition="box-shadow .2s cubic-bezier(.4,0,1,1), background-color .2s cubic-bezier(.4,0,.2,1), color .2s cubic-bezier(.4,0,.2,1)",y.style.textAlign="center",y.style.lineHeight="36px",y.style.verticalAlign="middle",y.style.pointerEvents="none",document.body.appendChild(y))}g.appendChild(y),y.innerHTML=`
-                <span style="background: 0 0; border: none; border-radius: 2px; color: #000; display: inline-block; padding: 0 8px;">KIAS ${o}</span>|
-                <span style="background: 0 0; border: none; border-radius: 2px; color: #000; display: inline-block; padding: 0 8px;">Mach ${l}</span>|
-                <span style="background: 0 0; border: none; border-radius: 2px; color: #000; display: inline-block; padding: 0 8px;">GS ${t}</span>|
-                <span style="background: 0 0; border: none; border-radius: 2px; color: #000; display: inline-block; padding: 0 8px;">ALT ${r}</span>|
-                <span style="background: 0 0; border: none; border-radius: 2px; color: #000; display: inline-block; padding: 0 8px;">AGL ${$}</span>|
-                <span style="background: 0 0; border: none; border-radius: 2px; color: #000; display: inline-block; padding: 0 8px;">HDG ${d}</span>|
-                <span style="background: 0 0; border: none; border-radius: 2px; color: #000; display: inline-block; padding: 0 8px;">V/S ${"N/A"===s?"N/A":s}</span>|
-                <span style="background: 0 0; border: none; border-radius: 2px; color: #000; display: inline-block; padding: 0 8px;">THR ${p}</span>|
-                <span style="background: 0 0; border: none; border-radius: 2px; color: #000; display: inline-block; padding: 0 8px;">AOA ${c}</span>|
-                <span style="background: 0 0; border: none; border-radius: 2px; color: #000; display: inline-block; padding: 0 8px;">GSLOPE ${a}</span>|
-                <span style="background: 0 0; border: none; border-radius: 2px; color: #000; display: inline-block; padding: 0 8px;">G ${u}</span>|
-                <span style="background: 0 0; border: none; border-radius: 2px; color: #000; display: inline-block; padding: 0 8px;">OP ${i}</span>|
-                <span style="background: 0 0; border: none; border-radius: 2px; color: #000; display: inline-block; padding: 0 8px;">CC ${e}</span>|
-                <span style="background: 0 0; border: none; border-radius: 2px; color: #000; display: inline-block; padding: 0 8px;">FUEL ${b}</span>
-            `,flight.recorder.playing?y.style.display="none":y.style.display="inline-block"}},100);
+        setInterval(function n(){if(geofs.animation.values){var a,i,e,o=geofs.animation.values.kias?geofs.animation.values.kias.toFixed(1):"N/A",l=geofs.animation.values.mach?geofs.animation.values.mach.toFixed(2):"N/A",t=geofs.animation.values.groundSpeed?geofs.animation.values.groundSpeed.toFixed(1):"N/A",r=geofs.animation.values.altitude?Math.round(geofs.animation.values.altitude):"N/A",d=geofs.animation.values.heading360?Math.round(geofs.animation.values.heading360):"N/A",$=void 0!==geofs.animation.values.altitude&&void 0!==geofs.animation.values.groundElevationFeet?Math.round(geofs.animation.values.altitude-geofs.animation.values.groundElevationFeet+3.2808399*geofs.aircraft.instance.collisionPoints[geofs.aircraft.instance.collisionPoints.length-2].worldPosition[2]):"N/A",s=void 0!==geofs.animation.values.verticalSpeed?Math.round(geofs.animation.values.verticalSpeed):"N/A",p=!1===geofs.aircraft.instance.engine.on?"OFF":void 0!==geofs.animation.values.throttle?geofs.animation.values.throttle<.005&&geofs.animation.values.throttle>=0?"IDLE":(100*geofs.animation.values.throttle).toFixed(0)+"%":"N/A",c=void 0!==geofs.aircraft.instance.angleOfAttackDeg?geofs.aircraft.instance.angleOfAttackDeg.toFixed(1):"N/A";window.DEGREES_TO_RAD=window.DEGREES_TO_RAD||.017453292519943295,window.RAD_TO_DEGREES=window.RAD_TO_DEGREES||57.29577951308232;var $=void 0!==geofs.animation.values.altitude&&void 0!==geofs.animation.values.groundElevationFeet?Math.round(geofs.animation.values.altitude-geofs.animation.values.groundElevationFeet+3.2808399*geofs.aircraft.instance.collisionPoints[geofs.aircraft.instance.collisionPoints.length-2].worldPosition[2]):"N/A";a=geofs.animation.getValue("NAV1Direction")&&600!==geofs.animation.getValue("NAV1Distance")?"to"===geofs.animation.getValue("NAV1Direction")?(Math.atan(.3048*$/(geofs.animation.getValue("NAV1Distance")+600))*RAD_TO_DEGREES).toFixed(1):(Math.atan(.3048*$/Math.abs(geofs.animation.getValue("NAV1Distance")-600))*RAD_TO_DEGREES).toFixed(1):"N/A";var u=geofs.animation.values.loadFactor.toFixed(1);i=!0==globalThis.isOverpowered?"ON":"OFF",e=!0==globalThis.cycling?"ON":"OFF";var _=globalThis.fuelPercentage,b=void 0!==_?0===_?"0%":_<1?"1%":_.toFixed(0)+"%":"N/A";
+            var y=document.getElementById("flightDataDisplay");
+            if(!y){
+                y=document.createElement("div");
+                y.id="flightDataDisplay";
+                y.style.position="fixed";
+                y.style.top="70px";
+                y.style.right="20px";
+                y.style.width="220px";
+                y.style.backgroundColor="rgba(0, 0, 0, 0.35)"; // 65% transparent background
+                y.style.padding="15px";
+                y.style.borderRadius="12px";
+                y.style.fontFamily='"Roboto", "Helvetica", "Arial", sans-serif';
+                y.style.fontSize="13px";
+                y.style.fontWeight="600";
+                y.style.color="white";
+                y.style.pointerEvents="none";
+                y.style.zIndex="100000";
+                y.style.display="grid";
+                y.style.gridTemplateColumns="1fr 1fr";
+                y.style.gap="6px";
+                y.style.boxShadow="0 4px 12px rgba(0,0,0,0.2)";
+                y.style.backdropFilter="blur(4px)";
+                document.body.appendChild(y);
+            }
+            y.innerHTML=`
+                <span style="background: 0 0; border: none; display: inline-block;">KIAS: ${o}</span>
+                <span style="background: 0 0; border: none; display: inline-block;">Mach: ${l}</span>
+                <span style="background: 0 0; border: none; display: inline-block;">GS: ${t}</span>
+                <span style="background: 0 0; border: none; display: inline-block;">ALT: ${r}</span>
+                <span style="background: 0 0; border: none; display: inline-block;">AGL: ${$}</span>
+                <span style="background: 0 0; border: none; display: inline-block;">HDG: ${d}</span>
+                <span style="background: 0 0; border: none; display: inline-block;">V/S: ${"N/A"===s?"N/A":s}</span>
+                <span style="background: 0 0; border: none; display: inline-block;">THR: ${p}</span>
+                <span style="background: 0 0; border: none; display: inline-block;">AOA: ${c}</span>
+                <span style="background: 0 0; border: none; display: inline-block;">GSLOPE: ${a}</span>
+                <span style="background: 0 0; border: none; display: inline-block;">G: ${u}</span>
+                <span style="background: 0 0; border: none; display: inline-block;">OP: ${i}</span>
+                <span style="background: 0 0; border: none; display: inline-block;">CC: ${e}</span>
+                <span style="background: 0 0; border: none; display: inline-block;">FUEL: ${b}</span>
+            `;
+            flight.recorder.playing?y.style.display="none":y.style.display="grid"}},100);
     };
 
+    // Jetbridge — animated jetway that attaches to the aircraft door
+    // Note: delayed until the #extras-button element appears in the DOM
     function jetbridge () {
         (() => {var jetScript = document.createElement('script'); jetScript.src="https://raw.githack.com/Spice9/Geofs-Jetbridge/main/jetbridge-main.js";document.body.appendChild(jetScript);})()
     };
 
+    // Landing Stats — shows V/S, G-force, roll, TDZ accuracy etc. on touchdown
     function stats () {
         setTimeout(function(){"use strict";window.DEGREES_TO_RAD=window.DEGREES_TO_RAD||.017453292519943295,window.RAD_TO_DEGREES=window.RAD_TO_DEGREES||57.29577951308232,window.closeTimer=!0,window.closeSeconds=10,window.refreshRate=20,window.counter=0,window.isLoaded=!1,window.justLanded=!1,window.vertSpeed=0,window.oldAGL=0,window.newAGL=0,window.calVertS=0,window.groundSpeed=0,window.ktias=0,window.kTrue=0,window.bounces=0,window.statsOpen=!1,window.isGrounded=!0,window.isInTDZ=!1,window.softLanding=new Audio("https://tylerbmusic.github.io/GPWS-files_geofs/soft_landing.wav"),window.hardLanding=new Audio("https://tylerbmusic.github.io/GPWS-files_geofs/hard_landing.wav"),window.crashLanding=new Audio("https://tylerbmusic.github.io/GPWS-files_geofs/crash_landing.wav"),window.statsDiv=document.createElement("div"),window.statsDiv.style.width="fit-content",window.statsDiv.style.height="fit-content",window.statsDiv.style.background="linear-gradient(to bottom right, rgb(29, 52, 87), rgb(20, 40, 70))",window.statsDiv.style.zIndex="100000",window.statsDiv.style.margin="30px",window.statsDiv.style.padding="15px",window.statsDiv.style.fontFamily="Arial, sans-serif",window.statsDiv.style.boxShadow="0 8px 24px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.2)",window.statsDiv.style.color="white",window.statsDiv.style.position="fixed",window.statsDiv.style.borderRadius="12px",window.statsDiv.style.left="-50%",window.statsDiv.style.transition="0.4s ease",window.statsDiv.style.border="1px solid rgba(255,255,255,0.1)",document.body.appendChild(window.statsDiv),setInterval(function e(){if(!1==geofs.cautiousWithTerrain&&!geofs.isPaused()&&!(window.sd&&window.sd.cam.data)){if((void 0!==geofs.animation.values.altitude&&void 0!==geofs.animation.values.groundElevationFeet?geofs.animation.values.altitude-geofs.animation.values.groundElevationFeet+3.2808399*geofs.aircraft.instance.collisionPoints[geofs.aircraft.instance.collisionPoints.length-2].worldPosition[2]:"N/A")<500){if(window.justLanded=geofs.animation.values.groundContact&&!window.isGrounded,window.justLanded&&!window.statsOpen){window.closeTimer&&setTimeout(window.closeLndgStats,1e3*window.closeSeconds);let a=window.clamp((window.lVS-50)/70,0,5),t=window.clamp(2*Math.abs(window.geofs.animation.values.accZ/9.80665-1),0,2),i=Math.min(2*window.bounces,6),n=window.clamp(window.lRoll/10,0,1.5),s=!0==window.isInTDZ?0:1;if(window.landingScore=window.clamp(10-a-t-i-n-s,0,10),console.log("Landing score: "+window.landingScore),window.statsOpen=!0,window.statsDiv.innerHTML=`
                 <button style="
@@ -2274,43 +2469,80 @@ out skel qt;
 `,i=await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(t.replace("{{bbox}}",e+", "+a+", "+(e+.05)+", "+(a+.05)))}`),n=await i.json();window.lData=n},5e3),window.getTDZStatus=function(){if(window.lData){let e=window.lData,a=[],t=[-1,1/0];for(let i in e.elements){let n=e.elements[i];if("way"==n.type){let s=n.nodes;a.push(s[0]),a.push(s[s.length-1])}else"node"==n.type&&-1!=a.indexOf(n.id)&&window.sd.getDistance(window.geofs.aircraft.instance.llaLocation,[n.lat,n.lon])<t[1]&&(t=[[n.lat,n.lon],window.sd.getDistance(window.geofs.aircraft.instance.llaLocation,[n.lat,n.lon])])}let o=window.geofs.aircraft.instance.llaLocation,l=window.Cesium.Cartesian3.fromDegrees(t[0][1],t[0][0],o[2]),r=window.Cesium.Cartesian3.fromDegrees(o[1],o[0],o[2]),d=window.Cesium.Cartesian3.distance(l,r)*window.METERS_TO_FEET;return d>1e3&&d<1200}return!1},setInterval(function e(){void 0===window.geofs.animation.values||window.geofs.isPaused()||(void 0!==window.geofs.animation.values.altitude&&void 0!==window.geofs.animation.values.groundElevationFeet?window.geofs.animation.values.altitude-window.geofs.animation.values.groundElevationFeet+3.2808399*window.geofs.aircraft.instance.collisionPoints[window.geofs.aircraft.instance.collisionPoints.length-2].worldPosition[2]:"N/A")===window.oldAGL||(window.newAGL=void 0!==window.geofs.animation.values.altitude&&void 0!==window.geofs.animation.values.groundElevationFeet?window.geofs.animation.values.altitude-window.geofs.animation.values.groundElevationFeet+3.2808399*window.geofs.aircraft.instance.collisionPoints[window.geofs.aircraft.instance.collisionPoints.length-2].worldPosition[2]:"N/A",window.newTime=Date.now(),window.calVertS=(window.newAGL-window.oldAGL)*(6e4/(window.newTime-window.oldTime)),window.oldAGL=void 0!==window.geofs.animation.values.altitude&&void 0!==window.geofs.animation.values.groundElevationFeet?window.geofs.animation.values.altitude-window.geofs.animation.values.groundElevationFeet+3.2808399*window.geofs.aircraft.instance.collisionPoints[window.geofs.aircraft.instance.collisionPoints.length-2].worldPosition[2]:"N/A",window.oldTime=Date.now())},25),window.closeLndgStats=function(){window.statsDiv.style.left="-50%",setTimeout(function(){window.statsDiv.innerHTML="",window.statsOpen=!1,window.bounces=0},400)}},1e3);
     };
 
+    // Overpowered Engines — sets engine thrust to 6× and ceiling to 300,000 ft
+    // Toggle with [Q]
     function opengines () {
         function toggleAircraftProperties(){globalThis.isOverpowered=!1;let t={thrust:{},zeroThrustAltitude:null,zeroRPMAltitude:null},r=geofs?.aircraft?.instance?.aircraftRecord?.id||null,e=geofs.aircraft.instance.definition.mass;document.addEventListener("keydown",function(r){"q"!==r.key.toLowerCase()||r.ctrlKey||r.altKey||r.metaKey||(globalThis.isOverpowered?(function r(){if(geofs?.aircraft?.instance){let e=geofs.aircraft.instance;if(e.definition&&(null!==t.zeroThrustAltitude&&(e.definition.zeroThrustAltitude=t.zeroThrustAltitude),null!==t.zeroRPMAltitude&&(e.definition.zeroRPMAltitude=t.zeroRPMAltitude)),e.parts)for(let i in t.thrust){let u=e.parts[i];u?.thrust!==void 0&&(u.thrust=t.thrust[i].thrust,void 0!==u.afterBurnerThrust&&null!==t.thrust[i].afterBurnerThrust&&(u.afterBurnerThrust=t.thrust[i].afterBurnerThrust),void 0!==u.reverseThrust&&null!==t.thrust[i].reverseThrust&&(u.reverseThrust=t.thrust[i].reverseThrust))}}}(),globalThis.isOverpowered=!1,console.log("Aircraft properties set to normal.")):(function r(){if(geofs?.aircraft?.instance){let i=geofs.aircraft.instance;if(e=i.definition.mass,null===t.zeroThrustAltitude&&i.definition?.zeroThrustAltitude!==void 0&&(t.zeroThrustAltitude=i.definition.zeroThrustAltitude),null===t.zeroRPMAltitude&&i.definition?.zeroRPMAltitude!==void 0&&(t.zeroRPMAltitude=i.definition.zeroRPMAltitude),i.definition&&(i.definition.zeroThrustAltitude=3e5,i.definition.zeroRPMAltitude=3e5),i.parts)for(let u in i.parts){let s=i.parts[u];if(s?.thrust!==void 0){t.thrust[u]||(t.thrust[u]={thrust:s.thrust,afterBurnerThrust:s.afterBurnerThrust||null,reverseThrust:s.reverseThrust||null});let n,o,l;n=6*Number(t.thrust[u].thrust),o=null!==t.thrust[u].afterBurnerThrust?6*t.thrust[u].afterBurnerThrust:n;l=6*Number(t.thrust[u].reverseThrust),console.log(t.thrust),console.log(n),s.thrust=n,void 0!==s.afterBurnerThrust&&(s.afterBurnerThrust=o),void 0!==s.reverseThrust&&(s.reverseThrust=l)}}}}(),globalThis.isOverpowered=!0,console.log("Aircraft properties set to overpowered mode.")))}),console.log("Press 'Q' to toggle aircraft properties between normal and overpowered."),setInterval(()=>{let e=geofs?.aircraft?.instance?.aircraftRecord?.id||null;e!==r&&(console.log("Aircraft changed, resetting toggle."),t={thrust:{},zeroThrustAltitude:null,zeroRPMAltitude:null},globalThis.isOverpowered=!1,r=e)},500)}toggleAircraftProperties();
     };
 
+    // Pushback — adds a driveable pushback tug for most aircraft
     function pushback () {
         !function($,x){let a=_0x5694,e=$();for(;;)try{let t=parseInt(a(299))/1*(parseInt(a(291))/2)+-parseInt(a(377))/3+-parseInt(a(365))/4+parseInt(a(328))/5+-parseInt(a(292))/6*(-parseInt(a(315))/7)+parseInt(a(372))/8*(-parseInt(a(364))/9)+-parseInt(a(346))/10*(-parseInt(a(295))/11);if(648459===t)break;e.push(e.shift())}catch(_){e.push(e.shift())}}(_0x1c81,648459);let itv=setInterval(function(){try{window.ui&&window.flight&&(main(),getData(),clearInterval(itv))}catch($){}},500),defaultFriction,pushbackInfo,pushbackModels;async function getData(){let $=_0x5694;await fetch("https://raw.githubusercontent.com/TotallyRealElonMusk/GeoFS-Pushback/main/pushback%20data/pushback.json")[$(375)](x=>x[$(316)]())[$(375)]($=>pushbackInfo=$);await fetch($(312))[$(375)]($=>$.json()).then($=>pushbackModels=$)}function _0x5694($,x){let a=_0x1c81();return(_0x5694=function($,x){return a[$-=291]})($,x)}function main(){let $=_0x5694;window[$(340)]={},pushback[$(370)]=0,pushback[$(349)]=0,pushback[$(368)]=function(x){let a=$;pushback[a(370)]=x,.5===x&&(x=1),-.5===x&&(x=-1),pushback[a(301)]&&clearInterval(pushback.lockInt),pushback.lockInt=setInterval(function(){pushback[a(308)](x)})},pushback.stopBack=function(){let x=$;clearInterval(pushback[x(301)]),pushback[x(370)]=0,pushback.pushBack(0),clearInterval(pushback[x(301)])},pushback[$(308)]=function(x){let a=$,e=Math.round(window.geofs.animation.values[a(311)]);geofs[a(355)].instance[a(363)].setLinearVelocity([x*Math[a(324)](e*Math.PI/180),x*Math[a(337)](e*Math.PI/180),0])},pushback[$(367)]=function(x){let a=$;pushback[a(349)]=x,geofs[a(298)].values[a(321)]=x};let x;pushback[$(332)]=!1,pushback.checkAircraft=function($){return!!pushbackInfo[$]},pushback[$(296)]=function(){let x=$;for(let a=0;a<geofs[x(355)].instance[x(354)][x(303)][x(330)];a++)if(geofs[x(355)][x(359)][x(354)][x(303)][a][x(306)])for(let e=0;e<geofs[x(355)][x(359)][x(354)][x(303)][a].animations[x(330)];e++)geofs[x(355)][x(359)][x(354)][x(303)][a][x(306)][e].value==x(349)&&(geofs[x(355)].instance.setup.parts[a][x(306)][e][x(342)]="yawPushback",geofs[x(355)][x(359)][x(354)][x(303)][a][x(335)]&&(pushback[x(334)]=geofs[x(355)][x(359)][x(354)].parts[a].animations[e].ratio))},pushback[$(373)]=function(){let x=$;clearInterval(pushback[x(301)]),window.geofs.aircraft[x(359)].setup.contactProperties[x(369)][x(376)]=defaultFriction;for(let a=0;a<geofs[x(355)][x(359)].setup.parts.length;a++)if(window.geofs.aircraft.instance.setup.parts[a].animations)for(let e=0;e<geofs[x(355)][x(359)][x(354)][x(303)][a].animations[x(330)];e++)window.geofs.aircraft[x(359)][x(354)][x(303)][a][x(306)][e][x(342)]==x(321)&&(window.geofs.aircraft.instance[x(354)][x(303)][a][x(306)][e][x(342)]=x(349))},pushback[$(317)]=function(){pushback.addPushBackTruck()},pushback[$(350)]=function(){let x=$;if(pushbackInfo[window.geofs.aircraft[x(359)].id]){let a={name:x(331),model:pushbackModels[pushbackInfo[window.geofs.aircraft[x(359)].id][x(339)]],position:pushbackInfo[geofs[x(355)][x(359)].id][x(319)],animations:[{type:x(351),axis:"Z",value:x(321),ratio:pushback.defaultYaw},{value:x(309),type:x(343),value:x(348)},{type:x(351),value:"atilt",axis:"X",ratio:-1}],rotation:[0,0,0]};geofs[x(355)][x(359)][x(323)]([a],x(336),1,x(366))}};let a=document.getElementsByClassName("geofs-autopilot-bar"),e=document[$(327)]($(320));e[$(341)].add($(356)),e.id=$(300),e.style[$(318)]=$(357),e[$(305)]=$(314),a[0][$(347)](e);document[$(362)]($(300))[$(293)]=function(){!function a(){let e=$;void 0!=x&&x[e(338)](),(x=window[e(352)]("",e(374),"toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=yes,resizable=no,width=780,height=300,top="+(screen[e(358)]-400)+e(307)+(screen[e(322)]-840)))[e(345)][e(326)][e(305)]=e(297);let t=x[e(345)][e(362)](e(349)),_=x.document[e(362)](e(370)),n=x[e(345)][e(362)](e(340)),i=x[e(345)][e(362)]("reset"),o=x[e(345)][e(362)](e(294)),s=x[e(345)].getElementById(e(361));_[e(333)]=function(){let $=e;!0==pushback[$(332)]&&(pushback[$(368)]((parseInt(this[$(342)])-40)/2),o[$(305)]=(parseInt(this.value)-40)/2)},t[e(333)]=function(){let $=e;!0==pushback[$(332)]&&(pushback[$(367)]((parseInt(this.value)-50)/50),s[$(305)]=(parseInt(this[$(342)])-50)/50)},n[e(333)]=async function(){let $=e;!1===pushback.pushBackState?!0===pushback[$(304)](geofs[$(355)][$(359)].id)&&!0==geofs[$(355)][$(359)][$(353)]&&geofs[$(298)][$(360)].rollingSpeed<.5&&(await pushback.setUpdate(),pushback[$(317)](),pushback[$(332)]=!0,geofs[$(298)][$(360)].pushBackTruck=1,defaultFriction=geofs[$(355)][$(359)].setup[$(310)][$(369)].lockSpeed,geofs[$(355)][$(359)].setup[$(310)][$(369)][$(376)]=.5):(pushback[$(332)]=!1,geofs[$(298)].values[$(348)]=0,window.geofs.aircraft[$(359)][$(303)].pushbackTruck[$(344)][$(313)](),pushback[$(373)](),pushback[$(325)](),i[$(293)]())},i.onclick=function(){let $=e;t[$(342)]="50",s[$(305)]="0",_[$(342)]="40",o[$(305)]="0",pushback[$(325)](),pushback[$(368)](0),pushback[$(325)](),pushback.startYaw(0)},x[e(371)]=function(){let $=e;pushback[$(332)]=!1,window.geofs.animation[$(360)].pushBackTruck=0,geofs[$(355)][$(359)][$(303)].pushbackTruck.object3d[$(313)](),pushback[$(373)](),pushback[$(325)](),i[$(293)]()},x[e(329)]("keydown",function($){let x=e;if(38===$[x(302)]&&pushback.speed<20){let a=pushback[x(370)]+.5;pushback.startBack(a),o.innerHTML=a,_[x(342)]=2*a+40}else if(40===$[x(302)]&&pushback[x(370)]>-20){let n=pushback[x(370)]-.5;pushback[x(368)](n),o[x(305)]=n,_[x(342)]=2*n+40}else if(39===$.keyCode&&pushback[x(349)]<1){let i=Math[x(378)]((pushback[x(349)]+.02)*100)/100;pushback[x(367)](i),s[x(305)]=i,t[x(342)]=50*i+50}else if(37===$[x(302)]&&pushback[x(349)]>-1){let c=Math[x(378)]((pushback[x(349)]-.02)*100)/100;pushback[x(367)](c),s[x(305)]=c,t[x(342)]=50*c+50}})}()}}function _0x1c81(){let $=["then","lockSpeed","1258782BnpTvr","round","6TtZgaV","12AvIPhZ","onclick","speedInfo","319TOOmos","setUpdate",'<style>\n.slidecontainer {\n  width: 100%;\n  /* Width of the outside container */\n}\n\n/* The slider itself */\n.slider {\n  -webkit-appearance: none;\n  /* Override default CSS styles */\n  appearance: none;\n  width: 50%;\n  /* Full-width */\n  height: 25px;\n  /* Specified height */\n  background: #d3d3d3;\n  /* Grey background */\n  outline: none;\n  /* Remove outline */\n  opacity: 0.7;\n  /* Set transparency (for mouse-over effects on hover) */\n  -webkit-transition: .2s;\n  /* 0.2 seconds transition on hover */\n  transition: opacity .2s;\n}\n\n/* Mouse-over effects */\n.slider:hover {\n  opacity: 1;\n  /* Fully shown on mouse-over */\n}\n\n/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */\n.slider::-webkit-slider-thumb {\n  -webkit-appearance: none;\n  /* Override default look */\n  appearance: none;\n  width: 25px;\n  /* Set a specific slider handle width */\n  height: 25px;\n  /* Slider handle height */\n  background: #04AA6D;\n  /* Green background */\n  cursor: pointer;\n  /* Cursor on hover */\n}\n\n.slider::-moz-range-thumb {\n  width: 25px;\n  /* Set a specific slider handle width */\n  height: 25px;\n  /* Slider handle height */\n  background: #04AA6D;\n  /* Green background */\n  cursor: pointer;\n  /* Cursor on hover */\n}\n\n.center {\n  font-family: verdana;\n  display: center;\n}\n</style>\n<input type="checkbox" id="pushback" name="pushback" value="pushback" class="center"></input>\n<labelfor="pushback" class="center"> Toggle pushback </label></p> Yaw:\n<div id="yawInfo">0</div>\n<div class="slidecontainer">\n  <input type="range" min="0" max="100" value="50" class="slider" id="yaw">\n  </p> Speed: <div id="speedInfo">0</div>\n  <div class="slidecontainer">\n    <input type="range" min="0" max="80" value="40" class="slider" id="speed">\n    </p>\n    <button class="center" type="button" id="reset">Reset</button>\n    <br>\n  </div>',"animation","363367mttbUH","pushbackButtonMain","lockInt","keyCode","parts","checkAircraft","innerHTML","animations",",left=","pushBack","view","contactProperties","heading360","https://raw.githubusercontent.com/TotallyRealElonMusk/GeoFS-Pushback/main/pushback%20data/pushbackModel.json","destroy",'<div style="line-height: 27px;font-size: 12px !important;pointer-events: none;color: #FFF;text-align: center;">PUSHBACK</div>',"4303656PWCiJH","json","addPushBackTruckHandler","cssText","pos","div","yawPushback","width","addParts","sin","stopBack","body","createElement","1931860IqPriw","addEventListener","length","pushbackTruck","pushBackState","oninput","defaultYaw","collisionPoints","https://raw.githubusercontent.com/","cos","close","model","pushback","classList","value","show","object3d","document","75250HvkrXo","append","pushBackTruck","yaw","addPushBackTruck","rotate","open","groundContact","setup","aircraft","control-pad","width: 90px;height: 25px;margin: 0px 10px;border-radius: 15px;outline: none;","height","instance","values","yawInfo","getElementById","rigidBody","324036SVkzvQ","4544724bXaXlh","Zup","startYaw","startBack","wheel","speed","onbeforeunload","160yAxlOT","revertUpdate","Title"];return(_0x1c81=function(){return $})()}
     };
 
+    // -------------------------------------------------------------------------
+    // REALISM & ENVIRONMENT
+    // -------------------------------------------------------------------------
+
+    // Realism Pack — comprehensive realism overhaul (clickable cockpits, wingflex,
+    // ejection seats, condensation, livery selector, and more)
+    // Note: delayed until the JOBS button appears in the DOM
     function realism () {
         (() => {var realismScript = document.createElement('script'); realismScript.src="https://raw.githack.com/geofs-pilot/realism-pack-modded/main/main.js";document.body.appendChild(realismScript);realismScript.onload = (function(){realismGo()});})()
     };
-    
+
+    // Sky Dolly — formation mode and logbook (port of MSFS Sky Dolly)
     function dolly () {
         (() => {var dollyScript = document.createElement('script'); dollyScript.src="https://raw.githack.com/tylerbmusic/GeoFS-Sky-Dolly/main/userscript.js";document.body.appendChild(dollyScript);})()
-            };
+    };
 
+    // Slew Mode — FSX-style position/attitude editor. Toggle [Y], fly with IJKL/UE
     function slew () {
         (() => {var slewScript = document.createElement('script'); slewScript.src="https://raw.githack.com/tylerbmusic/GeoFS-Slew-Mode/main/userscript.js";document.body.appendChild(slewScript);})()
-            };
+    };
 
+    // Maritime Structures — additional sea-based 3D objects in the world
+    function maritimeStructures () {
+        (() => {var msScript = document.createElement('script'); msScript.src="https://raw.githack.com/CementAndRebar/GeoFS-Extra-Maritime-Structures/main/main.js";document.body.appendChild(msScript);})()
+    }
+
+    // Streetlights — renders streetlights at night on roads around airports
+    function streetlights () {
+        (() => {var slScript = document.createElement('script'); slScript.src="https://raw.githack.com/tylerbmusic/GeoFS-Streetlights/main/userscript.js";document.body.appendChild(slScript);})()
+    }
+
+    // Utilities — general-purpose GeoFS utility functions
+    function utilities () {
+        (() => {var utilScript = document.createElement('script'); utilScript.src="https://raw.githack.com/tylerbmusic/geofs-utilities/refs/heads/main/userscript.js";document.body.appendChild(utilScript);})()
+    }
+
+    // Taxiway Lights — adds illuminated taxiway edge lights
     function twlights () {
         (() => {var twlScript = document.createElement('script'); twlScript.src="https://raw.githack.com/tylerbmusic/GeoFS-Taxiway-Lights/main/userscript.js";document.body.appendChild(twlScript);})()
     };
 
+    // Taxiway Signs — adds ICAO-standard taxiway signage
     function twsigns() {
         (() => {var twsScript = document.createElement('script'); twsScript.src="https://raw.githack.com/tylerbmusic/GeoFS-Taxiway-Signs/main/userscript.js";document.body.appendChild(twsScript);})()
     }
 
+    // -------------------------------------------------------------------------
+    // UI TWEAKS
+    // -------------------------------------------------------------------------
+
+    // UI Tweaks — popout chat window
     function tweaks () {
         const POPOUT_CHAT=!0;!function e(){"use strict";if(!window.jQuery)return setTimeout(e,1e3);{let t=$('<button class="mdl-button mdl-js-button mdl-button--icon" tabindex="0"><i class="material-icons">text_fields</i></button>')[0];document.querySelectorAll(".geofs-button-mute").forEach(e=>e.parentNode.appendChild(t));let o,n,a;t.onclick=function(){n=(a=document.querySelector(".geofs-chat-messages")).parentNode,(o=window.open("about:blank","_blank","height=580, width=680, popup=1")).document.body.append(a),o.document.head.append($("<title>GeoFS - Chat</title>")[0]),o.document.head.append($("<style>.geofs-chat-message{opacity:1!important;font-family:sans-serif;}</style>")[0]),o.onbeforeunload=()=>n.append(a)},window.onbeforeunload=()=>o&&o.close()}}();
     }
+
+    // -------------------------------------------------------------------------
+    // ADDON EXECUTION — called immediately (no waiting required)
+    // -------------------------------------------------------------------------
     ai();
     adblock();
     autoland();
     athrottle();
-    //camera();
-    charts();
+    camera();
     chatFix();
     volume();
     fpv();
@@ -2321,12 +2553,20 @@ out skel qt;
     pushback();
     dolly();
     slew();
+    maritimeStructures();
+    streetlights();
+    utilities();
     twlights();
     twsigns();
     tweaks();
     info();
 
-    //wait for jobs button to appear
+    // -------------------------------------------------------------------------
+    // DEFERRED ADDON EXECUTION — triggered by DOM element observation
+    // Some addons depend on specific GeoFS UI elements being present first.
+    // -------------------------------------------------------------------------
+
+    // Realism Pack — wait for the JOBS button before loading
     let realismRun = false;
     const jobsBtn = Array.from(document.querySelectorAll(".control-pad-label.transp-pad"))
     .find(el => el.textContent.trim() === "JOBS");
@@ -2345,7 +2585,7 @@ out skel qt;
     });
     jobsObserver.observe(document.body, { childList: true, subtree: true });
 
-    //wait for liveryselector button to appear
+    // Extra Vehicles — wait for the livery selector button before loading
     let scriptRun = false;
     const LSBtn = document.getElementById("liverybutton");
     if (LSBtn && !scriptRun) {
@@ -2362,7 +2602,7 @@ out skel qt;
     });
     observer.observe(document.body, { childList: true, subtree: true });
 
-    //wait for extras button to appear
+    // Jetbridge — wait for the #extras-button before loading
     let scriptsRun = false;
     const extrasBtn = document.getElementById("extras-button");
     if (extrasBtn && !scriptsRun) {
@@ -2379,7 +2619,8 @@ out skel qt;
     });
     extrasObserver.observe(document.body, { childList: true, subtree: true });
 
-    //wait for gmenu button to appear, then cycle the display so that it doesn't open and close along with the option panel
+    // GMenu fix — hide the GMenu panel on load to prevent it opening/closing
+    // alongside the GeoFS preferences panel (they share a toggle state)
     let cycled = false;
     const GmenuBtn = document.getElementById("gamenu");
     if (GmenuBtn && !cycled) {
@@ -2396,6 +2637,13 @@ out skel qt;
     });
     gmenuObserver.observe(document.body, { childList: true, subtree: true });
 }
+
+// =============================================================================
+// SECTION 5: ENTRY POINT
+// Poll every 100ms until the GeoFS aircraft instance is ready, then wait an
+// additional 1 second before injecting menus and executing addons. This ensures
+// that the GeoFS UI is fully rendered and all global APIs are available.
+// =============================================================================
 
 const waitForGeoFS = setInterval(() => {
     if (typeof geofs !== "undefined" && geofs.aircraft && geofs.aircraft.instance) {
