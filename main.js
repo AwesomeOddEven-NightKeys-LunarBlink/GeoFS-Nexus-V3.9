@@ -110,7 +110,7 @@ if (typeof unsafeWindow === "undefined") {
             margin: 3px 0;
             border-radius: 8px;
             background: linear-gradient(135deg, rgba(10,15,30,0.9), rgba(20,30,45,0.85));
-            color: #e0e6ed;
+            color: #000000;
             font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
             font-size: 13px;
             font-weight: 600;
@@ -167,7 +167,7 @@ if (typeof unsafeWindow === "undefined") {
             margin: 2px 0;
             border-radius: 6px;
             background: rgba(100,200,255,0.05);
-            color: #c8d6e5;
+            color: #000000;
             font-size: 12.5px;
             font-weight: 500;
             transition: all 0.2s ease;
@@ -176,7 +176,7 @@ if (typeof unsafeWindow === "undefined") {
         .nexus-sub-item:hover {
             background: rgba(100,200,255,0.1);
             border-left-color: rgba(100,200,255,0.6);
-            color: #fff;
+            color: #000000;
         }
 
         /* ── Description text ── */
@@ -186,7 +186,7 @@ if (typeof unsafeWindow === "undefined") {
             opacity: 0;
             transition: max-height 0.35s ease, opacity 0.25s ease, padding 0.25s ease;
             padding: 0 10px;
-            color: #a0b0c5;
+            color: #000000;
             font-size: 11.5px;
             line-height: 1.5;
             white-space: pre-wrap;
@@ -262,7 +262,7 @@ if (typeof unsafeWindow === "undefined") {
             margin: 4px 0;
             border-radius: 6px;
             background: rgba(100,200,255,0.12);
-            color: rgba(100,200,255,0.9);
+            color: #000000;
             font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
@@ -272,6 +272,39 @@ if (typeof unsafeWindow === "undefined") {
         }
         .nexus-category:hover {
             background: rgba(100,200,255,0.15);
+        }
+
+        /* ── HUD minimize button ── */
+        #hudMinimizeBtn {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(145deg, rgba(10,18,30,0.85), rgba(20,35,55,0.80));
+            border: 1px solid rgba(100,200,255,0.25);
+            border-radius: 8px;
+            color: rgba(100,200,255,0.8);
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100001;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        #hudMinimizeBtn:hover {
+            background: linear-gradient(145deg, rgba(20,35,60,0.95), rgba(35,60,95,0.90));
+            border-color: rgba(100,200,255,0.5);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+        }
+        #flightDataDisplay.hud-minimized {
+            display: none !important;
         }
     `;
     document.head.appendChild(css);
@@ -1735,9 +1768,28 @@ function addonExecution () {
     // KIAS, Mach, GS, ALT, AGL, HDG, V/S, THR, AOA, GSLOPE, G-force, OP, CC, FUEL
     function info () {
         globalThis.hudVisible = true;
+        globalThis.hudMinimized = false;
+
+        // Create the minimize/restore button
+        const hudMinBtn = document.createElement('div');
+        hudMinBtn.id = 'hudMinimizeBtn';
+        hudMinBtn.title = 'Toggle information display';
+        hudMinBtn.innerHTML = '▣';
+        document.body.appendChild(hudMinBtn);
+        hudMinBtn.addEventListener('click', () => {
+            globalThis.hudMinimized = !globalThis.hudMinimized;
+            const hud = document.getElementById('flightDataDisplay');
+            if (hud) {
+                hud.classList.toggle('hud-minimized', globalThis.hudMinimized);
+            }
+            hudMinBtn.innerHTML = globalThis.hudMinimized ? '◈' : '▣';
+            hudMinBtn.title = globalThis.hudMinimized ? 'Restore information display' : 'Minimize information display';
+        });
+
         document.addEventListener('keydown', function(e) {
             if (e.key === '\\' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
                 globalThis.hudVisible = !globalThis.hudVisible;
+                hudMinBtn.style.display = globalThis.hudVisible ? 'flex' : 'none';
             }
         });
         let isDragging = false;
@@ -1832,7 +1884,8 @@ function addonExecution () {
                 if (y) y.style.display = 'none';
                 return;
             } else {
-                if (y) y.style.display = 'grid';
+                if (y && !globalThis.hudMinimized) y.style.display = 'grid';
+                else if (y && globalThis.hudMinimized) y.style.display = 'none';
             }
 
             y.innerHTML =
