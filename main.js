@@ -110,7 +110,7 @@ if (typeof unsafeWindow === "undefined") {
             margin: 3px 0;
             border-radius: 8px;
             background: linear-gradient(135deg, rgba(10,15,30,0.9), rgba(20,30,45,0.85));
-            color: #000000;
+            color: #ffffff;
             font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
             font-size: 13px;
             font-weight: 600;
@@ -167,7 +167,7 @@ if (typeof unsafeWindow === "undefined") {
             margin: 2px 0;
             border-radius: 6px;
             background: rgba(100,200,255,0.05);
-            color: #000000;
+            color: #eef2f7;
             font-size: 12.5px;
             font-weight: 500;
             transition: all 0.2s ease;
@@ -176,7 +176,7 @@ if (typeof unsafeWindow === "undefined") {
         .nexus-sub-item:hover {
             background: rgba(100,200,255,0.1);
             border-left-color: rgba(100,200,255,0.6);
-            color: #000000;
+            color: #ffffff;
         }
 
         /* ── Description text ── */
@@ -186,7 +186,7 @@ if (typeof unsafeWindow === "undefined") {
             opacity: 0;
             transition: max-height 0.35s ease, opacity 0.25s ease, padding 0.25s ease;
             padding: 0 10px;
-            color: #000000;
+            color: #d1d9e6;
             font-size: 11.5px;
             line-height: 1.5;
             white-space: pre-wrap;
@@ -225,7 +225,7 @@ if (typeof unsafeWindow === "undefined") {
             user-select: none;
         }
         #flightDataDisplay .hud-label {
-            color: rgba(100,200,255,0.65);
+            color: rgba(140,220,255,0.9);
             font-size: 10px;
             font-weight: 400;
             letter-spacing: 0.5px;
@@ -262,7 +262,7 @@ if (typeof unsafeWindow === "undefined") {
             margin: 4px 0;
             border-radius: 6px;
             background: rgba(100,200,255,0.12);
-            color: #000000;
+            color: #ffffff;
             font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
