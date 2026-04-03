@@ -8,4 +8,4 @@
 // @match        https://*.geo-fs.com/geofs.php*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=geo-fs.com
 // ==/UserScript==
-(() => {var addonScript = document.createElement('script'); addonScript.src="https://cdn.jsdelivr.net/gh/AwesomeOddEven-NightKeys-LunarBlink/GeoFS-Nexus-V3.9@main/main.js";document.body.appendChild(addonScript);})();
+(() => {var addonScript = document.createElement('script'); addonScript.src="https://raw.githack.com/AwesomeOddEven-NightKeys-LunarBlink/GeoFS-Nexus-V3.9/main/main.js";document.body.appendChild(addonScript);})();
