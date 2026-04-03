@@ -277,8 +277,8 @@ if (typeof unsafeWindow === "undefined") {
         /* ── HUD minimize button ── */
         #hudMinimizeBtn {
             position: fixed;
-            top: 70px;
-            right: 260px;
+            bottom: 90px;
+            right: 20px;
             width: 30px;
             height: 30px;
             background: linear-gradient(145deg, rgba(10,18,30,0.85), rgba(20,35,55,0.80));
