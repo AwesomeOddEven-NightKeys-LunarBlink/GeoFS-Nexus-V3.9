@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         GeoFS-Nexus-V3.9
 // @namespace    http://tampermonkey.net/
-// @version      1.0.2
-// @description  26+Addons, with detailed procedures and improved UI!
+// @version      2.0.0
+// @description  26+ Addons with polished UI, draggable HUD, real aircraft procedures!
 // @author       AwesomeOddEven-NightKeys-LunarBlink
 // @match        https://www.geo-fs.com/geofs.php?v=*
 // @match        https://*.geo-fs.com/geofs.php*
