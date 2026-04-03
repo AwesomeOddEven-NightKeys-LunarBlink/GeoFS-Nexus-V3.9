@@ -504,7 +504,7 @@ function menus() {
             'Flight path vector': 'Shows approximately where your flight path intersects the ground. Hidden by pressing [Insert].',
             'Fuel': 'Simulates fuel consumption. To refuel, you must be on the ground, stationary, and have engines off.',
             'GPWS': 'Adds GPWS callouts (airliners). For minimums to work, type in the BAROMETRIC (MSL) minimum altitude.',
-            'Information display': 'Displays IAS, Mach, GS, ALT, AGL, HDG, V/S, THR, AOA, Glideslope, G-force, and fuel. Draggable. Toggle by pressing [ K ].',
+            'Information display': 'Displays IAS, Mach, GS, ALT, AGL, HDG, V/S, THR, AOA, Glideslope, G-force, and fuel. Draggable. Toggle by pressing [ \\ ].',
             'Jetbridge': 'Loads a jetbridge which you can adjust the position of.',
             'Landing stats': 'Upon landing, displays V/S, G-forces, airspeed, roll, tilt, TDZ accuracy, and a landing score.',
             'Overpowered engines': 'Sets engine thrust to 6x normal and ceiling to 300,000 ft. Toggle using [Q].',
@@ -1769,6 +1769,7 @@ function addonExecution () {
     function info () {
         globalThis.hudVisible = true;
         globalThis.hudMinimized = false;
+        console.log("Nexus: Info HUD initialized");
 
         // Create the minimize/restore button
         const hudMinBtn = document.createElement('div');
@@ -1787,9 +1788,11 @@ function addonExecution () {
         });
 
         document.addEventListener('keydown', function(e) {
-            if ((e.key === 'k' || e.key === 'K') && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+            if (e.key === '\\' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
                 globalThis.hudVisible = !globalThis.hudVisible;
-                hudMinBtn.style.display = globalThis.hudVisible ? 'flex' : 'none';
+                if (document.getElementById('hudMinimizeBtn')) {
+                    document.getElementById('hudMinimizeBtn').style.display = globalThis.hudVisible ? 'flex' : 'none';
+                }
             }
         });
         let isDragging = false;
@@ -1880,13 +1883,12 @@ function addonExecution () {
                 makeDraggable(y);
             }
 
-            // Always keep the minimize button synced with overall HUD visibility
-            hudMinBtn.style.display = globalThis.hudVisible ? 'flex' : 'none';
+            // Updated display logic to prevent "nothing showing" issues
+            const btn = document.getElementById('hudMinimizeBtn');
+            if (btn) btn.style.display = globalThis.hudVisible ? 'flex' : 'none';
 
             if (!globalThis.hudVisible || globalThis.hudMinimized) {
                 if (y) y.style.display = 'none';
-                if (!globalThis.hudVisible) return;
-                // minimized — keep looping so values stay fresh, but don't render
                 return;
             }
 
@@ -1907,10 +1909,10 @@ function addonExecution () {
                 hudCell('CC', e) +
                 hudCell('FUEL', b, fuelWarn);
 
-            // Only show full HUD when recorder is not playing and not minimized
-            if (flight.recorder.playing) {
+            // final visibility check
+            if (flight.recorder.playing || globalThis.hudMinimized || !globalThis.hudVisible) {
                 y.style.display = 'none';
-            } else if (!globalThis.hudMinimized) {
+            } else {
                 y.style.display = 'grid';
             }
         }, 100);
