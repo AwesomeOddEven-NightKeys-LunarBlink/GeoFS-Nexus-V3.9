@@ -277,24 +277,27 @@ if (typeof unsafeWindow === "undefined") {
         /* ── HUD minimize button ── */
         #hudMinimizeBtn {
             position: fixed;
-            bottom: 90px;
-            right: 20px;
+            top: 50% !important;
+            margin-top: -15px !important;
+            right: 0 !important;
+            transform: none !important;
             width: 30px;
             height: 30px;
             background: linear-gradient(145deg, rgba(10,18,30,0.85), rgba(20,35,55,0.80));
             border: 1px solid rgba(100,200,255,0.25);
-            border-radius: 7px;
+            border-right: none;
+            border-radius: 7px 0 0 7px;
             color: rgba(100,200,255,0.8);
             font-size: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
+            cursor: move;
             z-index: 100002;
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            transition: all 0.2s ease;
+            transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
             user-select: none;
         }
         #hudMinimizeBtn:hover {
@@ -1767,67 +1770,120 @@ function addonExecution () {
     // Information Display — floating HUD panel (top-right) showing live flight data:
     // KIAS, Mach, GS, ALT, AGL, HDG, V/S, THR, AOA, GSLOPE, G-force, OP, CC, FUEL
     function info () {
+        let isDragging = false;
+        let dragTarget = null;
+        let dragMoved = false;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
         globalThis.hudVisible = true;
         globalThis.hudMinimized = false;
         console.log("Nexus: Info HUD initialized");
 
-        // Create the minimize/restore button
-        const hudMinBtn = document.createElement('div');
-        hudMinBtn.id = 'hudMinimizeBtn';
-        hudMinBtn.title = 'Toggle information display';
-        hudMinBtn.innerHTML = '▣';
-        document.body.appendChild(hudMinBtn);
-        hudMinBtn.addEventListener('click', () => {
+        function toggleHud() {
             globalThis.hudMinimized = !globalThis.hudMinimized;
             const hud = document.getElementById('flightDataDisplay');
-            if (hud) {
-                hud.classList.toggle('hud-minimized', globalThis.hudMinimized);
+            if (hud) hud.classList.toggle('hud-minimized', globalThis.hudMinimized);
+            const btn = document.getElementById('hudMinimizeBtn');
+            if (btn) {
+                btn.innerHTML = globalThis.hudMinimized ? '◈' : '▣';
+                btn.title = globalThis.hudMinimized ? 'Restore information display' : 'Minimize information display';
             }
-            hudMinBtn.innerHTML = globalThis.hudMinimized ? '◈' : '▣';
-            hudMinBtn.title = globalThis.hudMinimized ? 'Restore information display' : 'Minimize information display';
-        });
+        }
 
-        document.addEventListener('keydown', function(e) {
-            if (e.key === '\\' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-                globalThis.hudVisible = !globalThis.hudVisible;
-                if (document.getElementById('hudMinimizeBtn')) {
-                    document.getElementById('hudMinimizeBtn').style.display = globalThis.hudVisible ? 'flex' : 'none';
-                }
+        function applyDraggable(el, storageKey) {
+            if (storageKey) {
+                try {
+                    const saved = localStorage.getItem(storageKey);
+                    if (saved) {
+                        const pos = JSON.parse(saved);
+                        if (pos.left && pos.top) {
+                            el.style.left = pos.left;
+                            el.style.top = pos.top;
+                            el.style.right = 'auto';
+                            el.style.bottom = 'auto';
+                            el.style.transform = 'none'; // Disable baseline centering transform
+                        }
+                    }
+                } catch (e) {}
             }
-        });
-        let isDragging = false;
-        let dragOffsetX = 0;
-        let dragOffsetY = 0;
 
-        function makeDraggable(el) {
             el.addEventListener('mousedown', (e) => {
                 isDragging = true;
+                dragTarget = el;
+                dragMoved = false;
                 dragOffsetX = e.clientX - el.getBoundingClientRect().left;
                 dragOffsetY = e.clientY - el.getBoundingClientRect().top;
                 el.style.cursor = 'grabbing';
+                el.style.transform = 'none'; // Ensure transform doesn't interfere with manual positioning
                 e.preventDefault();
             });
-            document.addEventListener('mousemove', (e) => {
-                if (!isDragging) return;
-                let newX = e.clientX - dragOffsetX;
-                let newY = e.clientY - dragOffsetY;
-                if (newY < 0) newY = 0;
-                if (newX < 0) newX = 0;
-                let maxX = window.innerWidth - el.offsetWidth;
-                let maxY = window.innerHeight - el.offsetHeight;
-                if (newX > maxX) newX = maxX;
-                if (newY > maxY) newY = maxY;
-                el.style.left = newX + 'px';
-                el.style.top = newY + 'px';
-                el.style.right = 'auto';
-            });
-            document.addEventListener('mouseup', () => {
-                isDragging = false;
-                if (document.getElementById('flightDataDisplay')) {
-                    document.getElementById('flightDataDisplay').style.cursor = 'move';
-                }
-            });
         }
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging || !dragTarget) return;
+            dragMoved = true;
+            let newX = e.clientX - dragOffsetX;
+            let newY = e.clientY - dragOffsetY;
+            
+            if (newY < 0) newY = 0;
+            if (newX < 0) newX = 0;
+            let maxX = window.innerWidth - dragTarget.offsetWidth;
+            let maxY = window.innerHeight - dragTarget.offsetHeight;
+            if (newX > maxX) newX = maxX;
+            if (newY > maxY) newY = maxY;
+            
+            dragTarget.style.left = newX + 'px';
+            dragTarget.style.top = newY + 'px';
+            dragTarget.style.right = 'auto';
+            dragTarget.style.bottom = 'auto';
+            dragTarget.style.transform = 'none'; // Anchor position firmly
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isDragging && dragTarget) {
+                dragTarget.style.cursor = 'move';
+                const key = dragTarget.id === 'hudMinimizeBtn' ? 'geofs-nexus-hud-icon-pos' : 
+                          (dragTarget.id === 'flightDataDisplay' ? 'geofs-nexus-hud-pos' : null);
+                if (key && dragMoved) {
+                    localStorage.setItem(key, JSON.stringify({
+                        left: dragTarget.style.left,
+                        top: dragTarget.style.top
+                    }));
+                }
+            }
+            isDragging = false;
+            dragTarget = null;
+        });
+
+        // --- 2. Create Icon ---
+        const hudMinBtn = document.createElement('div');
+        hudMinBtn.id = 'hudMinimizeBtn';
+        hudMinBtn.title = 'Toggle information display [K]';
+        hudMinBtn.innerHTML = '▣';
+        
+        // Directly set initial position for middle-right docking
+        hudMinBtn.style.right = '0px';
+        hudMinBtn.style.top = '50%';
+        hudMinBtn.style.transform = 'translateY(-50%)';
+        
+        document.body.appendChild(hudMinBtn);
+        
+        // One-time automated reset if stale positions exist from previous versions
+        if (!localStorage.getItem('geofs-nexus-v3.9-reset-v2')) {
+            localStorage.removeItem('geofs-nexus-hud-icon-pos');
+            localStorage.setItem('geofs-nexus-v3.9-reset-v2', 'true');
+        }
+
+        applyDraggable(hudMinBtn, 'geofs-nexus-hud-icon-pos');
+
+        hudMinBtn.addEventListener('click', () => {
+            if (dragMoved) return;
+            toggleHud();
+        });
+
+        // Toggle function exposed globally for the global key listener
+        window.toggleNexusHud = toggleHud;
 
         function hudCell(label, value, warnClass) {
             return `<div class="hud-cell"><span class="hud-label">${label}</span><span class="hud-value ${warnClass || ''}">${value}</span></div>`;
@@ -1835,86 +1891,63 @@ function addonExecution () {
 
         setInterval(function() {
             if (!geofs.animation.values) return;
-
-            var o = geofs.animation.values.kias ? geofs.animation.values.kias.toFixed(1) : "N/A";
-            var l = geofs.animation.values.mach ? geofs.animation.values.mach.toFixed(2) : "N/A";
-            var t = geofs.animation.values.groundSpeed ? geofs.animation.values.groundSpeed.toFixed(1) : "N/A";
-            var r = geofs.animation.values.altitude ? Math.round(geofs.animation.values.altitude) : "N/A";
-            var d = geofs.animation.values.heading360 ? Math.round(geofs.animation.values.heading360) : "N/A";
-            var $ = (void 0 !== geofs.animation.values.altitude && void 0 !== geofs.animation.values.groundElevationFeet)
+            let y = document.getElementById("flightDataDisplay");
+            if (!y) {
+                y = document.createElement("div");
+                y.id = "flightDataDisplay";
+                document.body.appendChild(y);
+                applyDraggable(y, 'geofs-nexus-hud-pos');
+            }
+            if (hudMinBtn) hudMinBtn.style.display = globalThis.hudVisible ? 'flex' : 'none';
+            if (!globalThis.hudVisible || globalThis.hudMinimized || flight.recorder.playing) {
+                if (y) y.style.display = 'none';
+                return;
+            }
+            const o = geofs.animation.values.kias ? geofs.animation.values.kias.toFixed(1) : "N/A";
+            const l = geofs.animation.values.mach ? geofs.animation.values.mach.toFixed(2) : "N/A";
+            const t = geofs.animation.values.groundSpeed ? geofs.animation.values.groundSpeed.toFixed(1) : "N/A";
+            const r = geofs.animation.values.altitude ? Math.round(geofs.animation.values.altitude) : "N/A";
+            const d = geofs.animation.values.heading360 ? Math.round(geofs.animation.values.heading360) : "N/A";
+            const $ = (void 0 !== geofs.animation.values.altitude && void 0 !== geofs.animation.values.groundElevationFeet)
                 ? Math.round(geofs.animation.values.altitude - geofs.animation.values.groundElevationFeet + 3.2808399 * geofs.aircraft.instance.collisionPoints[geofs.aircraft.instance.collisionPoints.length - 2].worldPosition[2])
                 : "N/A";
-            var s = void 0 !== geofs.animation.values.verticalSpeed ? Math.round(geofs.animation.values.verticalSpeed) : "N/A";
-            var p = !1 === geofs.aircraft.instance.engine.on ? "OFF"
+            const s = void 0 !== geofs.animation.values.verticalSpeed ? Math.round(geofs.animation.values.verticalSpeed) : "N/A";
+            const p = !1 === geofs.aircraft.instance.engine.on ? "OFF"
                 : void 0 !== geofs.animation.values.throttle
                     ? (geofs.animation.values.throttle < .005 && geofs.animation.values.throttle >= 0 ? "IDLE" : (100 * geofs.animation.values.throttle).toFixed(0) + "%")
                     : "N/A";
-            var c = void 0 !== geofs.aircraft.instance.angleOfAttackDeg ? geofs.aircraft.instance.angleOfAttackDeg.toFixed(1) : "N/A";
+            const c = void 0 !== geofs.aircraft.instance.angleOfAttackDeg ? geofs.aircraft.instance.angleOfAttackDeg.toFixed(1) : "N/A";
 
             window.DEGREES_TO_RAD = window.DEGREES_TO_RAD || .017453292519943295;
             window.RAD_TO_DEGREES = window.RAD_TO_DEGREES || 57.29577951308232;
 
-            var a;
+            let nav_slope;
             if (geofs.animation.getValue("NAV1Direction") && 600 !== geofs.animation.getValue("NAV1Distance")) {
-                a = "to" === geofs.animation.getValue("NAV1Direction")
+                nav_slope = ("to" === geofs.animation.getValue("NAV1Direction")
                     ? (Math.atan(.3048 * $ / (geofs.animation.getValue("NAV1Distance") + 600)) * RAD_TO_DEGREES).toFixed(1)
-                    : (Math.atan(.3048 * $ / Math.abs(geofs.animation.getValue("NAV1Distance") - 600)) * RAD_TO_DEGREES).toFixed(1);
-            } else {
-                a = "N/A";
-            }
+                    : (Math.atan(.3048 * $ / Math.abs(geofs.animation.getValue("NAV1Distance") - 600)) * RAD_TO_DEGREES).toFixed(1));
+            } else { nav_slope = "N/A"; }
 
-            var u = geofs.animation.values.loadFactor.toFixed(1);
-            var i = globalThis.isOverpowered === true ? "ON" : "OFF";
-            var e = globalThis.cycling === true ? "ON" : "OFF";
-            var _ = globalThis.fuelPercentage;
-            var b = void 0 !== _ ? (0 === _ ? "0%" : _ < 1 ? "1%" : _.toFixed(0) + "%") : "N/A";
+            const u = geofs.animation.values.loadFactor.toFixed(1);
+            const i = globalThis.isOverpowered === true ? "ON" : "OFF";
+            const e = globalThis.cycling === true ? "ON" : "OFF";
+            const fuel = globalThis.fuelPercentage;
+            const b = void 0 !== fuel ? (0 === fuel ? "0%" : fuel < 1 ? "1%" : fuel.toFixed(0) + "%") : "N/A";
 
-            // Determine warning classes
-            var fuelWarn = (typeof _ === 'number' && _ < 15) ? (_ < 5 ? 'danger' : 'warn') : '';
-            var gWarn = (parseFloat(u) > 4) ? 'danger' : (parseFloat(u) > 2.5 ? 'warn' : '');
-            var vsWarn = (typeof s === 'number' && s < -2000) ? 'danger' : (typeof s === 'number' && s < -1000 ? 'warn' : '');
+            const fuelWarn = (typeof fuel === 'number' && fuel < 15) ? (fuel < 5 ? 'danger' : 'warn') : '';
+            const gWarn = (parseFloat(u) > 4) ? 'danger' : (parseFloat(u) > 2.5 ? 'warn' : '');
+            const vsWarn = (typeof s === 'number' && s < -2000) ? 'danger' : (typeof s === 'number' && s < -1000 ? 'warn' : '');
 
-            var y = document.getElementById("flightDataDisplay");
-            if (!y) {
-                y = document.createElement("div");
-                y.id = "flightDataDisplay";
-                // Styling is now handled by the nexus CSS design system
-                document.body.appendChild(y);
-                makeDraggable(y);
-            }
-
-            // Updated display logic to prevent "nothing showing" issues
-            const btn = document.getElementById('hudMinimizeBtn');
-            if (btn) btn.style.display = globalThis.hudVisible ? 'flex' : 'none';
-
-            if (!globalThis.hudVisible || globalThis.hudMinimized) {
-                if (y) y.style.display = 'none';
-                return;
-            }
-
-            y.innerHTML =
-                '<div class="hud-drag-handle">⋯⋯⋯</div>' +
-                hudCell('KIAS', o) +
-                hudCell('MACH', l) +
-                hudCell('GS', t) +
-                hudCell('ALT', r) +
-                hudCell('AGL', $) +
-                hudCell('HDG', d) +
-                hudCell('V/S', s, vsWarn) +
-                hudCell('THR', p) +
-                hudCell('AOA', c) +
-                hudCell('GSLOPE', a) +
-                hudCell('G', u, gWarn) +
-                hudCell('OP', i, i === 'ON' ? 'warn' : '') +
-                hudCell('CC', e) +
+            y.innerHTML = 
+                `<div class="hud-drag-handle">⋯⋯⋯</div>` +
+                hudCell('KIAS', o) + hudCell('MACH', l) + hudCell('GS', t) +
+                hudCell('ALT', r) + hudCell('AGL', $) + hudCell('HDG', d) +
+                hudCell('V/S', s, vsWarn) + hudCell('THR', p) + hudCell('AOA', c) +
+                hudCell('GSLOPE', nav_slope) + hudCell('G', u, gWarn) +
+                hudCell('OP', i, i === 'ON' ? 'warn' : '') + hudCell('CC', e) +
                 hudCell('FUEL', b, fuelWarn);
 
-            // final visibility check
-            if (flight.recorder.playing || globalThis.hudMinimized || !globalThis.hudVisible) {
-                y.style.display = 'none';
-            } else {
-                y.style.display = 'grid';
-            }
+            y.style.display = 'grid';
         }, 100);
     };
 
@@ -2066,6 +2099,29 @@ out skel qt;
     // -------------------------------------------------------------------------
     // ADDON EXECUTION — called immediately (no waiting required)
     // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // ADDON EXECUTION — called immediately (no waiting required)
+    // -------------------------------------------------------------------------
+    
+    // First, initialize global UI components
+    info();
+
+    // Global Keybinds for Nexus Addons
+    document.addEventListener('keydown', function(e) {
+        // Toggle HUD minimization with 'K'
+        if ((e.key === 'k' || e.key === 'K') && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+            if (typeof window.toggleNexusHud === 'function') {
+                window.toggleNexusHud();
+            }
+        }
+        // Legacy toggle for HUD visibility with '\'
+        if (e.key === '\\' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+            globalThis.hudVisible = !globalThis.hudVisible;
+            const btn = document.getElementById('hudMinimizeBtn');
+            if (btn) btn.style.display = globalThis.hudVisible ? 'flex' : 'none';
+        }
+    });
+
     ai();
     adblock();
     autoland();
@@ -2087,7 +2143,6 @@ out skel qt;
     twlights();
     twsigns();
     tweaks();
-    info();
 
     // -------------------------------------------------------------------------
     // DEFERRED ADDON EXECUTION — triggered by DOM element observation
