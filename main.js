@@ -147,11 +147,17 @@ if (typeof unsafeWindow === "undefined") {
             transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease;
             opacity: 0;
             padding: 0 8px;
+            background: rgba(15, 25, 45, 0.95);
+            border-radius: 8px;
+            border: 1px solid rgba(100,200,255,0.1);
+            margin: 2px 4px 8px 4px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
         .nexus-content.open {
             max-height: 5000px;
             opacity: 1;
-            padding: 6px 8px;
+            padding: 10px;
         }
 
         /* ── Sub-items (addon entries, aircraft entries) ── */
@@ -160,7 +166,7 @@ if (typeof unsafeWindow === "undefined") {
             padding: 8px 12px;
             margin: 2px 0;
             border-radius: 6px;
-            background: rgba(255,255,255,0.06);
+            background: rgba(100,200,255,0.05);
             color: #c8d6e5;
             font-size: 12.5px;
             font-weight: 500;
@@ -255,7 +261,7 @@ if (typeof unsafeWindow === "undefined") {
             padding: 8px 14px;
             margin: 4px 0;
             border-radius: 6px;
-            background: rgba(100,200,255,0.08);
+            background: rgba(100,200,255,0.12);
             color: rgba(100,200,255,0.9);
             font-size: 12px;
             font-weight: 700;
@@ -465,7 +471,7 @@ function menus() {
             'Flight path vector': 'Shows approximately where your flight path intersects the ground. Hidden by pressing [Insert].',
             'Fuel': 'Simulates fuel consumption. To refuel, you must be on the ground, stationary, and have engines off.',
             'GPWS': 'Adds GPWS callouts (airliners). For minimums to work, type in the BAROMETRIC (MSL) minimum altitude.',
-            'Information display': 'Displays IAS, Mach, GS, ALT, AGL, HDG, V/S, THR, AOA, Glideslope, G-force, and fuel. Draggable.',
+            'Information display': 'Displays IAS, Mach, GS, ALT, AGL, HDG, V/S, THR, AOA, Glideslope, G-force, and fuel. Draggable. Toggle by pressing [ \\ ].',
             'Jetbridge': 'Loads a jetbridge which you can adjust the position of.',
             'Landing stats': 'Upon landing, displays V/S, G-forces, airspeed, roll, tilt, TDZ accuracy, and a landing score.',
             'Overpowered engines': 'Sets engine thrust to 6x normal and ceiling to 300,000 ft. Toggle using [Q].',
@@ -764,7 +770,10 @@ function addonExecution () {
                     toggleContainer.style.position = "fixed"
                     //toggleContainer.style.right = "700px" //temporary positioning. needs to stay above the atc button
                     toggleContainer.style.bottom = "40px"
-                    toggleContainer.style.backgroundColor = "white"
+                    toggleContainer.style.background = "linear-gradient(135deg, rgba(15,25,45,0.95), rgba(25,45,75,0.9))"
+                    toggleContainer.style.color = "#e0e6ed"
+                    toggleContainer.style.border = "1px solid rgba(100,200,255,0.2)"
+                    toggleContainer.style.backdropFilter = "blur(10px)"
                     toggleContainer.style.justifyContent = "space-between"; // spread items evenly
                     toggleContainer.style.display = "none"
                     toggleContainer.style.padding = "10px 10px";            // add side padding
@@ -1495,7 +1504,7 @@ function addonExecution () {
     width: 40px;
 ">
         <button onclick="failure.fail('engine${t}')">FAIL</button>
-            `,window.failuresMenu.innerHTML=e}else{window.failure=new Failure,window.failuresMenu=document.createElement("div"),window.failuresMenu.style.position="fixed",window.failuresMenu.style.width="640px",window.failuresMenu.style.height="480px",window.failuresMenu.style.background="white",window.failuresMenu.style.display="block",window.failuresMenu.style.overflow="scroll",window.failuresMenu.style.zIndex="10000",window.failuresMenu.id="failMenu",window.failuresMenu.className="geofs-ui-left",document.body.appendChild(window.failuresMenu);for(var e=`
+            `,window.failuresMenu.innerHTML=e}else{window.failure=new Failure,window.failuresMenu=document.createElement("div"),window.failuresMenu.style.position="fixed",window.failuresMenu.style.width="640px",window.failuresMenu.style.height="480px",window.failuresMenu.style.background="linear-gradient(135deg, rgba(15,25,45,0.98), rgba(25,45,75,0.95))",window.failuresMenu.style.color="#e0e6ed",window.failuresMenu.style.borderRadius="12px",window.failuresMenu.style.border="1px solid rgba(100,200,255,0.2)",window.failuresMenu.style.backdropFilter="blur(10px)",window.failuresMenu.style.display="block",window.failuresMenu.style.overflow="scroll",window.failuresMenu.style.zIndex="10000",window.failuresMenu.id="failMenu",window.failuresMenu.className="geofs-ui-left",document.body.appendChild(window.failuresMenu);for(var e=`
         <div style="position: fixed; width: 640px; height: 10px; background: lightgray; cursor: move;" id="dragPart"></div>
         <p style="cursor: pointer;right: 0px;position: absolute;background: gray;height: fit-content;" onclick="window.failuresMenu.hidden=true;">X</p>
     <p>Note: Some failures may require a manual refresh of the page.</p>
@@ -1725,6 +1734,12 @@ function addonExecution () {
     // Information Display — floating HUD panel (top-right) showing live flight data:
     // KIAS, Mach, GS, ALT, AGL, HDG, V/S, THR, AOA, GSLOPE, G-force, OP, CC, FUEL
     function info () {
+        globalThis.hudVisible = true;
+        document.addEventListener('keydown', function(e) {
+            if (e.key === '\\' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+                globalThis.hudVisible = !globalThis.hudVisible;
+            }
+        });
         let isDragging = false;
         let dragOffsetX = 0;
         let dragOffsetY = 0;
@@ -1739,8 +1754,16 @@ function addonExecution () {
             });
             document.addEventListener('mousemove', (e) => {
                 if (!isDragging) return;
-                el.style.left = (e.clientX - dragOffsetX) + 'px';
-                el.style.top = (e.clientY - dragOffsetY) + 'px';
+                let newX = e.clientX - dragOffsetX;
+                let newY = e.clientY - dragOffsetY;
+                if (newY < 0) newY = 0;
+                if (newX < 0) newX = 0;
+                let maxX = window.innerWidth - el.offsetWidth;
+                let maxY = window.innerHeight - el.offsetHeight;
+                if (newX > maxX) newX = maxX;
+                if (newY > maxY) newY = maxY;
+                el.style.left = newX + 'px';
+                el.style.top = newY + 'px';
                 el.style.right = 'auto';
             });
             document.addEventListener('mouseup', () => {
@@ -1803,6 +1826,13 @@ function addonExecution () {
                 // Styling is now handled by the nexus CSS design system
                 document.body.appendChild(y);
                 makeDraggable(y);
+            }
+
+            if (!globalThis.hudVisible) {
+                if (y) y.style.display = 'none';
+                return;
+            } else {
+                if (y) y.style.display = 'grid';
             }
 
             y.innerHTML =
