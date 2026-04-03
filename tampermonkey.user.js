@@ -11,8 +11,8 @@
 // ==/UserScript==
 (() => {
     // Dynamic injection ensures Tampermonkey doesn't permanently cache your development code.
-    var ts = Math.floor(Date.now() / 60000); // 1-minute cache buster
+    var ts = Date.now(); // Instant cache buster during development
     var addonScript = document.createElement('script'); 
-    addonScript.src="https://raw.githack.com/AwesomeOddEven-NightKeys-LunarBlink/GeoFS-Nexus-V3.9/main/main.js?t=" + ts;
+    addonScript.src="https://raw.githack.com/AwesomeOddEven-NightKeys-LunarBlink/GeoFS-All-in-One-Addon_GeoFS-Nexus/main/main.js?t=" + ts;
     document.body.appendChild(addonScript);
 })();
