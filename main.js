@@ -109,7 +109,7 @@ if (typeof unsafeWindow === "undefined") {
             padding: 10px 14px;
             margin: 3px 0;
             border-radius: 8px;
-            background: linear-gradient(135deg, rgba(20,30,48,0.85), rgba(36,59,85,0.80));
+            background: linear-gradient(135deg, rgba(10,15,30,0.9), rgba(20,30,45,0.85));
             color: #e0e6ed;
             font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
             font-size: 13px;
@@ -122,8 +122,8 @@ if (typeof unsafeWindow === "undefined") {
             -webkit-backdrop-filter: blur(6px);
         }
         .nexus-dropdown:hover {
-            background: linear-gradient(135deg, rgba(30,50,70,0.92), rgba(50,80,110,0.88));
-            border-color: rgba(100,200,255,0.25);
+            background: linear-gradient(135deg, rgba(20,30,60,0.95), rgba(40,60,90,0.9));
+            border-color: rgba(80,120,200,0.3);
             transform: translateX(2px);
             box-shadow: 0 2px 12px rgba(0,0,0,0.15);
         }
