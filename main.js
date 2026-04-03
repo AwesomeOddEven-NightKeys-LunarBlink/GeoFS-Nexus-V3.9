@@ -192,7 +192,6 @@ function jobs() {
     jobsWindowObserver.observe(document.body, { childList: true, subtree: true });
 
 };
-jobs();
 
 // =============================================================================
 // SECTION 3: PREFERENCE PANEL MENUS
@@ -1306,6 +1305,8 @@ function addonExecution () {
     // -------------------------------------------------------------------------
     // ATC & COMMUNICATIONS
     // -------------------------------------------------------------------------
+
+    jobs();
 
     // AI ATC — PuterJS GPT-powered ATC with voice and text input
     function ai () {
