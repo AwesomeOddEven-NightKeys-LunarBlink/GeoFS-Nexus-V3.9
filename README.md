@@ -2,6 +2,9 @@
   <img src="logo.png" alt="GeoFS Nexus Logo" width="300px">
 </p>
 
+> [!IMPORTANT]
+> ⚠️ **Performance Note**: This bundle may load slowly due to the 26+ integrated community addons. If the Nexus menu or UI fails to initialize, please **restart your flight** or **refresh the page**. ⚠️
+
 # GeoFS Nexus V3.9
 ### The Ultimate All-in-One Community Userscript Bundle
 
