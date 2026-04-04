@@ -2162,13 +2162,13 @@ out skel qt;
     // alongside the GeoFS preferences panel (they share a toggle state)
     let cycled = false;
     const GmenuBtn = document.getElementById("gamenu");
-    if (GmenuBtn && !cycled) {
+    if (GmenuBtn && !cycled && window.gmenu) {
             window.gmenu.menuDiv.style.display = "none";
         cycled = true;
     }
     const gmenuObserver = new MutationObserver(() => {
         const GmenuBtn = document.getElementById("gamenu");
-        if (GmenuBtn && !cycled) {
+        if (GmenuBtn && !cycled && window.gmenu) {
             window.gmenu.menuDiv.style.display = "none";
             cycled = true;
             gmenuObserver.disconnect();
