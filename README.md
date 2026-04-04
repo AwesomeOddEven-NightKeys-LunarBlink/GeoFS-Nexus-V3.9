@@ -85,7 +85,7 @@ Toggle **Failures** in the addon menu to experience realistic system issues. If 
 | :--- | :--- |
 | `K` | Toggle Information Display (HUD) |
 | `D` | AI ATC Push-to-Talk (Hold) |
-| `/` | Toggle Autothrottle |
+| `Shift + ` (~)` | Toggle Autothrottle |
 | `Q` | Toggle Overpowered Engines (6x Thrust) |
 | `W` | Toggle Camera Cycling (Every 30s) |
 | `Y` | Toggle Slew Mode |
