@@ -41,7 +41,7 @@ Once the script is loaded, click the **Gear Icon** (Preferences) in the GeoFS le
 
 ### 2. The Information Display (HUD)
 The Nexus HUD provides real-time flight data like KIAS, Mach, AGL, G-force, and Fuel.
-- **Toggle**: Press `K` or `\` to show/hide the HUD.
+- **Toggle**: Press `K` to show/hide the HUD.
 - **Move**: Click and drag the `⋯⋯⋯` handle at the top of the HUD or the `▣` icon on the right side of the screen to reposition them.
 - **Warnings**: Values will turn **yellow** or **red** if you are overstressing the aircraft or running low on fuel.
 
@@ -66,7 +66,7 @@ Toggle **Failures** in the addon menu to experience realistic system issues. If 
 | :--- | :--- |
 | **AI ATC** | PuterJS GPT-powered air traffic control with voice/text. |
 | **Realism Pack** | Clickable cockpits, wingflex, sonic booms, and more. |
-| **Autoland++** | Automated landing systems (Arm with `Shift`). |
+| **Autoland++** | Automated landing systems. |
 | **Failures & Fuel** | Simulates system malfunctions and fuel consumption. |
 | **GPWS** | Realistic terrain and minimums callouts for airliners. |
 | **Landing Stats** | Detailed touchdown analysis (Vertical speed, G-force, Score). |
@@ -83,9 +83,8 @@ Toggle **Failures** in the addon menu to experience realistic system issues. If 
 ## ⌨️ Keybinds Reference
 | Key | Action |
 | :--- | :--- |
-| `K` or `\` | Toggle Information Display (HUD) |
+| `K` | Toggle Information Display (HUD) |
 | `D` | AI ATC Push-to-Talk (Hold) |
-| `Shift` | Arm Autoland++ |
 | `/` | Toggle Autothrottle |
 | `Q` | Toggle Overpowered Engines (6x Thrust) |
 | `W` | Toggle Camera Cycling (Every 30s) |

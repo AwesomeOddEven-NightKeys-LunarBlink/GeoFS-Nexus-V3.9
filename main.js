@@ -497,7 +497,7 @@ function menus() {
 
         const descriptions = {
             'AI ATC': 'Uses PuterJS GPT and speech-to-text to provide AI air traffic control.\nSend a voice message by clicking the headset icon or type a message using Ctrl+click. Pressing [D] acts as a push-to-talk key.\nYou have to be within 50 nautical miles of the airport to talk to it.',
-            'Autoland++': 'Automatically deploys spoilers, disables autopilot and autothrottle, and activates reverse thrust on touchdown. Arm using [Shift].',
+            'Autoland++': 'Automatically deploys spoilers, disables autopilot and autothrottle, and activates reverse thrust on touchdown.',
             'Autothrottle': 'Regulates aircraft speed while retaining pilot control. Press [/] to turn it on and off.',
             'Camera cycling': 'Randomly cycles through the camera angles every 30 seconds. Toggle on/off by pressing [W].',
             'Chat fix': 'Fixes the removal of the [T] keybind for opening the chat window in GeoFS.',
@@ -507,7 +507,7 @@ function menus() {
             'Flight path vector': 'Shows approximately where your flight path intersects the ground. Hidden by pressing [Insert].',
             'Fuel': 'Simulates fuel consumption. To refuel, you must be on the ground, stationary, and have engines off.',
             'GPWS': 'Adds GPWS callouts (airliners). For minimums to work, type in the BAROMETRIC (MSL) minimum altitude.',
-            'Information display': 'Displays IAS, Mach, GS, ALT, AGL, HDG, V/S, THR, AOA, Glideslope, G-force, and fuel. Draggable. Toggle by pressing [ \\ ].',
+            'Information display': 'Displays IAS, Mach, GS, ALT, AGL, HDG, V/S, THR, AOA, Glideslope, G-force, and fuel. Draggable. Toggle by pressing [ K ].',
             'Jetbridge': 'Loads a jetbridge which you can adjust the position of.',
             'Landing stats': 'Upon landing, displays V/S, G-forces, airspeed, roll, tilt, TDZ accuracy, and a landing score.',
             'Overpowered engines': 'Sets engine thrust to 6x normal and ceiling to 300,000 ft. Toggle using [Q].',
@@ -521,7 +521,8 @@ function menus() {
             'Utilities': 'Adds various utility functions for GeoFS.',
             'Taxiway lights': 'Adds illuminated taxiway edge lights.',
             'Taxiway signs': 'Adds ICAO-standard taxiway signage.',
-            'UI tweaks': 'Adds a popout chat window.'
+            'UI tweaks': 'Adds a popout chat window.',
+            'Ad Remover': 'Removes banner ads from the GeoFS UI.'
         };
 
         const { wrapper, content } = nexusDropdown('✦ Addons');
@@ -545,7 +546,7 @@ function menus() {
             'Other rules, METAR, airspace': 'Speed Limits:\n  250 kts below FL100\n  200 kts in Class B/C/D surface areas\nStandard Rate Turns: Speed / 10 + 7 = bank angle\n\nMETAR Example: PHNL 250953Z 05007G17KT 10SM FEW024 27/19 A3001\n  PHNL = Location\n  250953Z = 25th, 09:53 Zulu\n  05007G17KT = Wind 050 at 7kts gusting 17\n  10SM = 10 statute miles vis\n  FEW024 = Few clouds 2,400ft AGL\n  27/19 = Temp 27C / Dewpoint 19C\n  A3001 = Altimeter 30.01 inHg\n\nAirspace Classes:\n  A: FL180-FL600, IFR only\n  B: Surface-10,000ft, major airports\n  C: Surface-4,000ft AGL, two-way radio\n  D: Surface-2,500ft AGL, smaller towered\n  E: 1,200ft AGL-FL180, controlled\n  G: Surface-1,200ft AGL, uncontrolled',
             'ATC procedures': '1. Clearance: "[Airport] Clearance, [Callsign], IFR to [Dest], ready to copy."\n   ATC: "Cleared to [Dest] via [SID], climb maintain [alt], departure [freq], squawk [code]."\n2. Ground: "[Airport] Ground, [Callsign], gate [XX], ready for pushback."\n   ATC: "Pushback approved, taxi via [taxiway] to runway [XX]."\n3. Tower: "[Airport] Tower, [Callsign], holding short runway [XX], ready."\n   ATC: "Cleared for takeoff runway [XX]."\n4. Departure: Check in with departure frequency after handoff.\n5. Enroute: "[Center], [Callsign], level at [FL]."\n6. Approach: "[Approach], [Callsign], requesting ILS runway [XX]."\n7. Landing: "Established on ILS runway [XX]." -> "Cleared to land."\n8. Ground: "Clear of runway [XX], taxi to gate."',
             'Climb procedures': '1) Set flaps 2 for takeoff. Set V/S 3,000 fpm, speed 230 kts.\n2) At 1,500ft AGL: Retract flaps. Reduce thrust 80%. Engage autopilot.\n3) At 4,000ft AGL: V/S 2,400 fpm.\n4) At 10,000ft: Speed 250 kts, V/S 2,200 fpm.\n5) At 18,000ft: Speed 270 kts, V/S 1,800 fpm.\n6) At 25,000ft: Speed 280 kts, V/S 1,500 fpm.\n7) At 30,000ft: Speed M0.76, V/S 1,000 fpm.\n8) At cruise altitude: Set cruise speed, V/S 0.',
-            'Descent procedures': '1) Calculate T/D: (Cruise alt - Airport elev) x 0.003 = T/D distance (nm).\n2) At T/D-5nm: Speed M0.76, V/S -2,400 fpm.\n3) At T/D: Set target 4,000ft.\n4) 30,000ft: Speed 280 kts, V/S -2,200 fpm.\n5) 25,000ft: Speed 270 kts.\n6) 18,000ft: V/S -1,800 fpm.\n7) 12,000ft: Speed 250 kts.\n8) 10,000ft: Speed 240 kts.\n9) 7,000ft: Speed 230 kts, V/S -1,500 fpm.\n10) 5,000ft: Speed 210 kts, Flaps 1.\n11) 4,000ft: Speed 190 kts, Flaps 2, hold until 12nm.\n12) 12nm: Tune ILS.\n13) 3,000ft: Speed 170 kts, Flaps 3.\n14) 2,500ft: Speed 160 kts, Full flaps, Gear DOWN.\n15) Below 1,000ft: Disengage AP. Arm spoilers [Shift].',
+            'Descent procedures': '1) Calculate T/D: (Cruise alt - Airport elev) x 0.003 = T/D distance (nm).\n2) At T/D-5nm: Speed M0.76, V/S -2,400 fpm.\n3) At T/D: Set target 4,000ft.\n4) 30,000ft: Speed 280 kts, V/S -2,200 fpm.\n5) 25,000ft: Speed 270 kts.\n6) 18,000ft: V/S -1,800 fpm.\n7) 12,000ft: Speed 250 kts.\n8) 10,000ft: Speed 240 kts.\n9) 7,000ft: Speed 230 kts, V/S -1,500 fpm.\n10) 5,000ft: Speed 210 kts, Flaps 1.\n11) 4,000ft: Speed 190 kts, Flaps 2, hold until 12nm.\n12) 12nm: Tune ILS.\n13) 3,000ft: Speed 170 kts, Flaps 3.\n14) 2,500ft: Speed 160 kts, Full flaps, Gear DOWN.\n15) Below 1,000ft: Disengage AP.',
             'Go around procedures': '1) Announce "Go-Around" -- inform ATC.\n2) Apply full power smoothly.\n3) Pitch for positive climb, monitor airspeed.\n4) Retract flaps gradually as airspeed increases.\n5) Verify positive climb rate -- Gear UP.\n6) Stabilize at safe airspeed, maintain runway heading.\n7) Communicate: "[Callsign] going around, climbing to [alt]."\n8) Follow published missed approach procedure.'
         };
 
@@ -613,7 +614,7 @@ function menus() {
                 failures: 'SINGLE ENGINE:\n1. Identify failed engine, advance thrust on operative engine\n2. Maintain V2 minimum\n3. Single-engine ceiling: ~15,000 ft'
             },
             'Boeing 737-700/800': {
-                procedures: 'TAKEOFF:\n  Flaps: 5 (standard), 1/15/25 also available\n  V1: 130-150 KIAS   Vr: 135-155 KIAS   V2: 140-160 KIAS\n  Initial climb: V2+15, V/S 2,500-3,000 fpm\n  Retract flaps per PFD speed schedule\n\nCRUISE:\n  Typical altitude: FL350-FL390\n  Cruise speed: M0.78 (typical), M0.785 (max cruise)\n  Long-range cruise: M0.745\n  Max altitude: FL410\n\nAPPROACH & LANDING:\n  210 KIAS: Flaps 1\n  190 KIAS: Flaps 5\n  170 KIAS: Gear DOWN, Flaps 15\n  160 KIAS: Flaps 30 or 40\n  Vref: 130-145 KIAS (Flaps 30/40)\n  Vapp: Vref + 5 kts (wind correction)\n  Autobrake: 2 or 3 normal, MAX for short runway\n  Arm spoilers before landing',
+                procedures: 'TAKEOFF:\n  Flaps: 5 (standard), 1/15/25 also available\n  V1: 130-150 KIAS   Vr: 135-155 KIAS   V2: 140-160 KIAS\n  Initial climb: V2+15, V/S 2,500-3,000 fpm\n  Retract flaps per PFD speed schedule\n\nCRUISE:\n  Typical altitude: FL350-FL390\n  Cruise speed: M0.78 (typical), M0.785 (max cruise)\n  Long-range cruise: M0.745\n  Max altitude: FL410\n\nAPPROACH & LANDING:\n  210 KIAS: Flaps 1\n  190 KIAS: Flaps 5\n  170 KIAS: Gear DOWN, Flaps 15\n  160 KIAS: Flaps 30 or 40\n  Vref: 130-145 KIAS (Flaps 30/40)\n  Vapp: Vref + 5 kts (wind correction)\n  Autobrake: 2 or 3 normal, MAX for short runway',
                 failures: 'ENGINE FAILURE ON TAKEOFF:\n  Below V1: Reject -- MAX braking, spoilers, reverse thrust\n  Above V1: Continue, maintain V2, positive climb, gear UP\n  Single-engine ceiling: ~20,000 ft\n\nDUAL ENGINE FAILURE:\n  Best glide speed: ~220 KIAS clean\n  Look for nearest suitable airport'
             },
             'Boeing 757-200': {
