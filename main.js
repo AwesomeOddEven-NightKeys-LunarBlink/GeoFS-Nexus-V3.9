@@ -498,7 +498,7 @@ function menus() {
         const descriptions = {
             'AI ATC': 'Uses PuterJS GPT and speech-to-text to provide AI air traffic control.\nSend a voice message by clicking the headset icon or type a message using Ctrl+click. Pressing [D] acts as a push-to-talk key.\nYou have to be within 50 nautical miles of the airport to talk to it.',
             'Autoland++': 'Automatically deploys spoilers, disables autopilot and autothrottle, and activates reverse thrust on touchdown.',
-            'Autothrottle': 'Regulates aircraft speed while retaining pilot control. Press [Shift + `] to turn it on and off.',
+            'Autothrottle': 'Regulates aircraft speed while retaining pilot control. Press [Shift + ~] to turn it on and off.',
             'Camera cycling': 'Randomly cycles through the camera angles every 30 seconds. Toggle on/off by pressing [W].',
             'Chat fix': 'Fixes the removal of the [T] keybind for opening the chat window in GeoFS.',
             'Cockpit volume': 'Lowers the volume when in interior views in aircraft without dedicated cockpit sounds.',
@@ -1288,17 +1288,18 @@ function addonExecution () {
         (() => {var autolandScript = document.createElement('script'); autolandScript.src="https://raw.githack.com/geofs-pilot/Joystick-supported-autoland/refs/heads/main/script.js";document.body.appendChild(autolandScript);})()
     };
 
-    // Autothrottle — speed management keybind [Shift + `] (~) to toggle on/off
+    // Autothrottle — speed management keybind [Shift + ~] to toggle on/off
     function athrottle () {
         (() => {var athrScript = document.createElement('script'); athrScript.src="https://raw.githack.com/meatbroc/geofs-autothrottle/main/userscript.js";document.body.appendChild(athrScript);})()
         document.addEventListener('keydown', (e) => {
             if (e.key === "~" && e.shiftKey) {
-                //console.log("control key pressed");
-                
-                if (geofs.autothrottle.on) {
-                    $(document).trigger("autothrottleOff");
-                } else if (!geofs.autothrottle.on) {
-                    $(document).trigger("autothrottleOn");
+                // Compatibility check: Ensure geofs and autothrottle system are present
+                if (window.geofs && window.geofs.autothrottle) {
+                    if (window.geofs.autothrottle.on) {
+                        $(document).trigger("autothrottleOff");
+                    } else {
+                        $(document).trigger("autothrottleOn");
+                    }
                 }
             }
         });
