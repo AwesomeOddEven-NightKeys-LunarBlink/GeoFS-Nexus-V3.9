@@ -2114,12 +2114,6 @@ out skel qt;
                 window.toggleNexusHud();
             }
         }
-        // Legacy toggle for HUD visibility with '\'
-        if (e.key === '\\' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
-            globalThis.hudVisible = !globalThis.hudVisible;
-            const btn = document.getElementById('hudMinimizeBtn');
-            if (btn) btn.style.display = globalThis.hudVisible ? 'flex' : 'none';
-        }
     });
 
     ai();
