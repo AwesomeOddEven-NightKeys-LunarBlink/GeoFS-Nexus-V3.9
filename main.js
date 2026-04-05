@@ -2110,29 +2110,31 @@ out skel qt;
                 // Initialize addons to prevent undefined ReferenceErrors after eval()
                 code = "window.addons = window.addons || {}; let addons = window.addons;\n" + code;
 
-                // Execute inside an async wrapper to support top-level await natively
-                let msScript = document.createElement('script');
-                msScript.textContent = "(async function() { " + code + " \n})();";
-                document.body.appendChild(msScript);
+                // Execute using eval to maintain compatibility with the original addon context
+                eval("(async function() { " + code + " \n})();");
                 
-                // Ensure the button (landButton) follows the Extras button in the bottom bar to prevent overlap
+                // Reposition the button (landButton) to follow the Extras button in the bottom bar
                 const moveButton = setInterval(() => {
                     const landButton = document.getElementById('landButton');
                     const extrasButton = document.getElementById('extras-button');
                     const bottomBar = document.querySelector('.geofs-ui-bottom');
+                    
                     if (landButton && bottomBar) {
-                        if (extrasButton) {
-                            extrasButton.parentNode.insertBefore(landButton, extrasButton.nextSibling);
-                        } else {
-                            bottomBar.appendChild(landButton);
-                        }
-                        // Ensure it has the standard button classes for flow
+                        // Ensure it has standard button classes for consistent flow
                         landButton.classList.add('mdl-button', 'mdl-js-button', 'geofs-f-standard-ui');
-                        clearInterval(moveButton);
-                        console.log("Nexus: Maritime Structures button repositioned.");
+                        
+                        if (extrasButton) {
+                            // If Extras button exists, place Maritime Structures after it
+                            extrasButton.parentNode.insertBefore(landButton, extrasButton.nextSibling);
+                            clearInterval(moveButton);
+                            console.log("Nexus: Maritime Structures button moved after Extras.");
+                        } else {
+                            // If Extras button is not found yet, we wait.
+                            // The original script already appends landButton to geofs-ui-bottom by default.
+                        }
                     }
-                }, 500);
-                setTimeout(() => clearInterval(moveButton), 20000); // Failsafe
+                }, 1000);
+                setTimeout(() => clearInterval(moveButton), 30000); // Failsafe
             })
             .catch(e => console.error("Could not load Maritime Structures", e));
     }
