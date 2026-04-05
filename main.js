@@ -279,14 +279,14 @@ if (typeof unsafeWindow === "undefined") {
             position: fixed;
             top: 50% !important;
             margin-top: -15px !important;
-            right: 0 !important;
+            left: 0 !important;
             transform: none !important;
             width: 30px;
             height: 30px;
             background: linear-gradient(145deg, rgba(10,18,30,0.85), rgba(20,35,55,0.80));
             border: 1px solid rgba(100,200,255,0.25);
-            border-right: none;
-            border-radius: 7px 0 0 7px;
+            border-left: none;
+            border-radius: 0 7px 7px 0;
             color: rgba(100,200,255,0.8);
             font-size: 15px;
             display: flex;
@@ -1906,8 +1906,8 @@ function addonExecution () {
         hudMinBtn.title = 'Toggle information display [K]';
         hudMinBtn.innerHTML = '▣';
         
-        // Directly set initial position for middle-right docking
-        hudMinBtn.style.right = '0px';
+        // Directly set initial position for middle-left docking
+        hudMinBtn.style.left = '0px';
         hudMinBtn.style.top = '50%';
         hudMinBtn.style.transform = 'translateY(-50%)';
         
