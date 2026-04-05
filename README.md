@@ -100,7 +100,34 @@ Toggle **Failures** in the addon menu to experience realistic system issues. If 
 
 ---
 
-## 📝 Credits
-Brought to you by **AwesomeOddEven**, **NightKeys**, and **LunarBlink**, with contributions from the GeoFS community (Scitor, Kolos26, JXT, Spice9, CementAndRebar, and more).
+---
+
+## 🌍 Resource Directory (External Addons)
+GeoFS Nexus dynamically loads these high-quality community scripts. 
+
+| Addon Category | Development Source |
+| :--- | :--- |
+| **Realism Mod** | [geofs-pilot/realism-pack-modded](https://raw.githack.com/geofs-pilot/realism-pack-modded/main/main.js) |
+| **AI ATC Service** | [avramovic/geofs-ai-atc](https://raw.githack.com/avramovic/geofs-ai-atc/master/airports.json) |
+| **Jetbridge System** | [Spice9/Geofs-Jetbridge](https://raw.githack.com/Spice9/Geofs-Jetbridge/main/jetbridge-main.js) |
+| **Autoland Pro** | [geofs-pilot/Joystick-supported-autoland](https://raw.githack.com/geofs-pilot/Joystick-supported-autoland/refs/heads/main/script.js) |
+| **Landing Statistics** | [tylerbmusic/geofs-utilities](https://raw.githack.com/tylerbmusic/geofs-utilities/refs/heads/main/userscript.js) |
+| **Sky Dolly Utility** | [tylerbmusic/GeoFS-Sky-Dolly](https://raw.githack.com/tylerbmusic/GeoFS-Sky-Dolly/main/userscript.js) |
+| **Maritime Structures** | [CementAndRebar/GeoFS-Extra-Maritime-Structures](https://raw.githack.com/CementAndRebar/GeoFS-Extra-Maritime-Structures/main/main.js) |
+| **Airport Signage** | [tylerbmusic/GeoFS-Taxiway-Signs](https://raw.githack.com/tylerbmusic/GeoFS-Taxiway-Signs/main/userscript.js) |
+| **Chat Fix Tool** | [ZetaPossibly/GeoFS-Chat-Fix](https://raw.githack.com/ZetaPossibly/GeoFS-Chat-Fix/refs/heads/main/fix_chat.js) |
+| **Ad Remover** | [RadioactivePotato/GeoFS-Ad-Remover](https://raw.githack.com/RadioactivePotato/GeoFS-Ad-Remover/main/GeoFS%20Ad%20Remover-0.1.user.js) |
+
+---
+
+## ❤️ Special Thanks & Appreciation
+A project of this scale is only possible because of the incredible talent in the GeoF-S community. We want to extend a massive thank you to everyone who has contributed:
+
+- **AwesomeOddEven**, **NightKeys**, and **LunarBlink** for the core engineering and vision.
+- **Scitor**, **Kolos26**, and **JXT** for their foundational scripts that paved the way.
+- **Spice9**, **CementAndRebar**, **RadioactivePotato**, and **ZetaPossibly** for their specialized mods.
+- **Tylerbmusic** for providing the audio resources and utilities that make landing feel real.
+- **The Alpha Testers** and users who report bugs to keep the project soaring.
 
 *Disclaimer: This is a community-made project and is not officially affiliated with Geo-FS.*
+
