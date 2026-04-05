@@ -1924,13 +1924,13 @@ function addonExecution () {
             window.RAD_TO_DEGREES = window.RAD_TO_DEGREES || 57.29577951308232;
 
             let nav_slope;
-            if (geofs.animation.getValue("NAV1Direction") && 600 !== geofs.animation.getValue("NAV1Distance")) {
+            if (typeof $ === 'number' && geofs.animation.getValue("NAV1Direction") && 600 !== geofs.animation.getValue("NAV1Distance")) {
                 nav_slope = ("to" === geofs.animation.getValue("NAV1Direction")
                     ? (Math.atan(.3048 * $ / (geofs.animation.getValue("NAV1Distance") + 600)) * RAD_TO_DEGREES).toFixed(1)
                     : (Math.atan(.3048 * $ / Math.abs(geofs.animation.getValue("NAV1Distance") - 600)) * RAD_TO_DEGREES).toFixed(1));
             } else { nav_slope = "N/A"; }
 
-            const u = geofs.animation.values.loadFactor.toFixed(1);
+            const u = geofs.animation.values.loadFactor ? geofs.animation.values.loadFactor.toFixed(1) : "N/A";
             const i = globalThis.isOverpowered === true ? "ON" : "OFF";
             const e = globalThis.cycling === true ? "ON" : "OFF";
             const fuel = globalThis.fuelPercentage;
@@ -1999,8 +1999,8 @@ function addonExecution () {
                         <span>True airspeed: ${window.kTrue} kts</span>
                         <span>Ground speed: ${window.groundSpeed.toFixed(1)} kts</span>
                         <span>Indicated speed: ${window.ktias} kts</span>
-                        <span>Roll: ${window.geofs.animation.values.aroll.toFixed(1)} degrees</span>
-                        <span>Tilt: ${window.geofs.animation.values.atilt.toFixed(1)} degrees</span>
+                        <span>Roll: ${window.geofs.animation.values.aroll ? window.geofs.animation.values.aroll.toFixed(1) : "N/A"} degrees</span>
+                        <span>Tilt: ${window.geofs.animation.values.atilt ? window.geofs.animation.values.atilt.toFixed(1) : "N/A"} degrees</span>
                         <span id="bounces">Bounces: 0</span>
                     </div>
                 `,window.statsDiv.style.left="0px",window.statsDiv.innerHTML+=`
@@ -2022,7 +2022,7 @@ function addonExecution () {
                                 </div>`)}(-1e3>=Number(window.vertSpeed)||Number(window.vertSpeed>200))&&(window.crashLanding.play(),window.statsDiv.innerHTML+=`
                             <div class="landing-quality" style="background-color: crimson; color: white;">
                                 CRASH LANDING
-                            </div>`)}else if(window.justLanded&&window.statsOpen){window.bounces++,document.getElementById("bounces").innerHTML=`Bounces: ${window.bounces}`,window.softLanding.pause();let r=window.clamp((window.lVS-50)/70,0,5),d=window.clamp(2*Math.abs(window.geofs.animation.values.accZ/9.80665-1),0,2),$=Math.min(2*window.bounces,6),c=window.clamp(window.lRoll/10,0,1.5),g=!0==window.isInTDZ?0:1;window.landingScore=window.clamp(10-r-d-$-c-g,0,10),console.log("Landing score: "+window.landingScore)}window.geofs.animation.values.groundContact||(window.lVS=Math.abs(window.geofs.animation.values.verticalSpeed),window.lRoll=Math.abs(window.geofs.animation.values.aroll)),window.isInTDZ=window.getTDZStatus(),window.groundSpeed=window.geofs.animation.values.groundSpeedKnt,window.ktias=window.geofs.animation.values.kias.toFixed(1),window.kTrue=window.geofs.aircraft.instance.trueAirSpeed.toFixed(1),window.vertSpeed=window.geofs.animation.values.verticalSpeed.toFixed(1),window.gForces=window.geofs.animation.values.accZ/9.80665,window.isGrounded=window.geofs.animation.values.groundContact,window.refreshRate=12}else window.refreshRate=60}},window.refreshRate),setInterval(async()=>{var e=.05*Math.floor(window.geofs.aircraft.instance.llaLocation[0]/.05),a=.05*Math.floor(window.geofs.aircraft.instance.llaLocation[1]/.05);let t=`[out:json];
+                            </div>`)}else if(window.justLanded&&window.statsOpen){window.bounces++,document.getElementById("bounces").innerHTML=`Bounces: ${window.bounces}`,window.softLanding.pause();let r=window.clamp((window.lVS-50)/70,0,5),d=window.clamp(2*Math.abs(window.geofs.animation.values.accZ/9.80665-1),0,2),$=Math.min(2*window.bounces,6),c=window.clamp(window.lRoll/10,0,1.5),g=!0==window.isInTDZ?0:1;window.landingScore=window.clamp(10-r-d-$-c-g,0,10),console.log("Landing score: "+window.landingScore)}window.geofs.animation.values.groundContact||(window.lVS=Math.abs(window.geofs.animation.values.verticalSpeed),window.lRoll=Math.abs(window.geofs.animation.values.aroll)),window.isInTDZ=window.getTDZStatus(),window.groundSpeed=window.geofs.animation.values.groundSpeedKnt,window.ktias=window.geofs.animation.values.kias?window.geofs.animation.values.kias.toFixed(1):"N/A",window.kTrue=window.geofs.aircraft.instance.trueAirSpeed?window.geofs.aircraft.instance.trueAirSpeed.toFixed(1):"N/A",window.vertSpeed=window.geofs.animation.values.verticalSpeed?window.geofs.animation.values.verticalSpeed.toFixed(1):"N/A",window.gForces=window.geofs.animation.values.accZ/9.80665,window.isGrounded=window.geofs.animation.values.groundContact,window.refreshRate=12}else window.refreshRate=60}},window.refreshRate),setInterval(async()=>{var e=.05*Math.floor(window.geofs.aircraft.instance.llaLocation[0]/.05),a=.05*Math.floor(window.geofs.aircraft.instance.llaLocation[1]/.05);let t=`[out:json];
 (
   way["aeroway"="runway"]({{bbox}});
 );
