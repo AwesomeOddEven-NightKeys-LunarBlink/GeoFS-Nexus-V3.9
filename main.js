@@ -2084,7 +2084,21 @@ out skel qt;
 
     // Maritime Structures — additional sea-based 3D objects in the world
     function maritimeStructures () {
-        (() => {var msScript = document.createElement('script'); msScript.type="module"; msScript.src="https://raw.githack.com/CementAndRebar/GeoFS-Extra-Maritime-Structures/main/main.js";document.body.appendChild(msScript);})()
+        fetch("https://raw.githack.com/CementAndRebar/GeoFS-Extra-Maritime-Structures/main/main.js")
+            .then(res => res.text())
+            .then(code => {
+                // Initialize addons to prevent undefined ReferenceErrors after eval()
+                code = "window.addons = window.addons || {}; let addons = window.addons;\n" + code;
+                
+                // Redirect the button injection out of the cluttered lower bar to prevent overlap with Livery/Extra
+                code = code.replace(/geofs-ui-bottom/g, "geofs-ui-left");
+
+                // Execute inside an async wrapper to support top-level await natively
+                let msScript = document.createElement('script');
+                msScript.textContent = "(async function() { " + code + " \n})();";
+                document.body.appendChild(msScript);
+            })
+            .catch(e => console.error("Could not load Maritime Structures", e));
     }
 
     // Streetlights — renders streetlights at night on roads around airports
