@@ -2171,27 +2171,27 @@ out skel qt;
     });
 
 
-    ai();
-    adblock();
-    autoland();
-    athrottle();
-    camera();
-    chatFix();
-    volume();
-    fpv();
+    try { ai(); } catch(e) { console.error('Error in ai:', e); }
+    try { adblock(); } catch(e) { console.error('Error in adblock:', e); }
+    try { autoland(); } catch(e) { console.error('Error in autoland:', e); }
+    try { athrottle(); } catch(e) { console.error('Error in athrottle:', e); }
+    try { camera(); } catch(e) { console.error('Error in camera:', e); }
+    try { chatFix(); } catch(e) { console.error('Error in chatFix:', e); }
+    try { volume(); } catch(e) { console.error('Error in volume:', e); }
+    try { fpv(); } catch(e) { console.error('Error in fpv:', e); }
 
-    gpws();
-    stats();
-    opengines();
-    pushback();
-    dolly();
-    slew();
-    maritimeStructures();
-    streetlights();
-    utilities();
-    twlights();
-    twsigns();
-    tweaks();
+    try { gpws(); } catch(e) { console.error('Error in gpws:', e); }
+    try { stats(); } catch(e) { console.error('Error in stats:', e); }
+    try { opengines(); } catch(e) { console.error('Error in opengines:', e); }
+    try { pushback(); } catch(e) { console.error('Error in pushback:', e); }
+    try { dolly(); } catch(e) { console.error('Error in dolly:', e); }
+    try { slew(); } catch(e) { console.error('Error in slew:', e); }
+    try { maritimeStructures(); } catch(e) { console.error('Error in maritimeStructures:', e); }
+    try { streetlights(); } catch(e) { console.error('Error in streetlights:', e); }
+    try { utilities(); } catch(e) { console.error('Error in utilities:', e); }
+    try { twlights(); } catch(e) { console.error('Error in twlights:', e); }
+    try { twsigns(); } catch(e) { console.error('Error in twsigns:', e); }
+    try { tweaks(); } catch(e) { console.error('Error in tweaks:', e); }
 
     // -------------------------------------------------------------------------
     // DEFERRED ADDON EXECUTION — triggered by DOM element observation
@@ -2199,13 +2199,13 @@ out skel qt;
     // -------------------------------------------------------------------------
 
     // Realism Pack — delayed to ensure GeoFS DOM and job UI is stable
-    setTimeout(realism, 2000);
+    setTimeout(() => { try { realism(); } catch(e) { console.error('Error in realism:', e); } }, 2000);
 
     // Extra Vehicles — delayed to ensure Realism Pack's livery selector has loaded
-    setTimeout(vehicles, 5000);
+    setTimeout(() => { try { vehicles(); } catch(e) { console.error('Error in vehicles:', e); } }, 5000);
 
     // Jetbridge — delayed to ensure Extra Vehicles 'extras-button' has loaded
-    setTimeout(jetbridge, 8000);
+    setTimeout(() => { try { jetbridge(); } catch(e) { console.error('Error in jetbridge:', e); } }, 8000);
 
     // GMenu fix — hide the GMenu panel on load to prevent it opening/closing
     // alongside the GeoFS preferences panel (they share a toggle state)
