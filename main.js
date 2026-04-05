@@ -360,6 +360,24 @@ function jobs() {
                 return setTimeout(init, 1000 * wait++);
             }
             geofs.randomJobs = new RandomJobsMod(aList, aIndex, "0.8.6.1171");
+
+            // Monkey-patch the buggy init method inherited from legacy RandomJobs that crashes on geofs.api.map.markerLayers
+            const _origInit = geofs.randomJobs.init.bind(geofs.randomJobs);
+            geofs.randomJobs.init = function(ready) {
+                try {
+                    _origInit(ready);
+                } catch (e) {
+                    console.warn("RandomJobs: Bypassed markerLayers crash:", e);
+                    this.aList.forEach((sList, s) => Object.keys(sList).forEach(icao => this.aIndex[s].addPoint(icao, ...sList[icao])));
+                    $.getJSON(`${window.githubRepo}/icaos.json?${Date.now()}`, json => {
+                        json.forEach(e => aList.push(e));
+                        this.aHandler.init();
+                        setInterval(() => this.update(), 1000);
+                        ready();
+                    });
+                }
+            };
+
             geofs.randomJobs.init(() => new MainWindow(geofs.randomJobs).init());
         })();
     })();
@@ -2066,7 +2084,7 @@ out skel qt;
 
     // Maritime Structures — additional sea-based 3D objects in the world
     function maritimeStructures () {
-        (() => {var msScript = document.createElement('script'); msScript.src="https://raw.githack.com/CementAndRebar/GeoFS-Extra-Maritime-Structures/main/main.js";document.body.appendChild(msScript);})()
+        (() => {var msScript = document.createElement('script'); msScript.type="module"; msScript.src="https://raw.githack.com/CementAndRebar/GeoFS-Extra-Maritime-Structures/main/main.js";document.body.appendChild(msScript);})()
     }
 
     // Streetlights — renders streetlights at night on roads around airports
