@@ -4,6 +4,12 @@
 
 > [!IMPORTANT]
 > ⚠️ **Performance Note**: This bundle may load slowly due to the 26+ integrated community addons. If the Nexus menu or UI fails to initialize, please **restart your flight** or **refresh the page**. ⚠️
+>
+> 💥 **UI Layout & Camera Fixes**:
+> - **Bottom Bar Overlapping**: If the bottom bar looks "exploded" (too many icons), please **zoom out** your browser using `CTRL` + `-` or `CMD` + `-`.
+> - **Missing Gear/Flaps**: If you don't see the Gear or Flaps buttons in the bottom right, press `G` or `F` once to activate them.
+> - **Broken Camera**: If the camera view breaks, click the **CAMERA** button in the top menu and re-select **Follow Cam** to fix it.
+
 
 # GeoFS Nexus V3.9
 ### The Ultimate All-in-One Community Userscript Bundle
