@@ -321,16 +321,11 @@ if (typeof unsafeWindow === "undefined") {
 // =============================================================================
 
 function jobs() {
-    function loadScript(src) {
-        return new Promise((resolve, reject) => {
-            const script = document.createElement("script");
-            script.src = src;
-            script.onload = resolve;
-            script.onerror = () => reject(new Error(`Failed to load: ${src}`));
-            document.body.appendChild(script);
-        });
-    }
-
+    // Scripts are fetched as text, concatenated, then injected as ONE <script> tag.
+    // This is required because geofs.lib.js uses top-level `const aList` / `const aIndex`,
+    // and each separate <script src> or eval() call creates its own isolated lexical scope —
+    // meaning those consts would be invisible to manager.js, window.js, etc.
+    // By joining everything into one script tag, all declarations share a single scope.
     (async function () {
         const base = "https://raw.githack.com/scitor/GeoFS/master/";
 
@@ -347,21 +342,48 @@ function jobs() {
             "randomJobs/flightplan.page.js?0.8.6.1171"
         ];
 
-        for (const file of scripts) {
-            await loadScript(base + file);
-        }
+        // Fetch all in parallel, then concatenate preserving order
+        const texts = await Promise.all(
+            scripts.map(file =>
+                fetch(base + file)
+                    .then(r => r.ok ? r.text() : Promise.reject("HTTP " + r.status + " " + file))
+                    .then(code => code.replace(/^\s*['"]use strict['"]\s*;?\s*/m, ""))
+            )
+        );
 
-        // Set the repo base URL once all scripts are ready (used internally by the jobs mod)
+        // Set the repo base URL so scripts can self-reference it at eval time
         window.githubRepo = "https://raw.githubusercontent.com/scitor/GeoFS/master";
+
+        // Expose key names onto window — const in a <script> is NEVER a window property,
+        // so we must assign them explicitly after the const declarations run.
+        const windowExports = `
+window.aList = aList;
+window.aIndex = aIndex;
+window.RandomJobsMod = RandomJobsMod;
+window.MainWindow = MainWindow;
+window.AirportHandler = AirportHandler;
+window.FlightHandler = FlightHandler;
+window.JobGenerator = JobGenerator;
+`;
+        const blob = new Blob([texts.join("\n;\n") + "\n;\n" + windowExports], {type: "application/javascript"});
+        const blobUrl = URL.createObjectURL(blob);
+        await new Promise((resolve, reject) => {
+            const s = document.createElement("script");
+            s.src = blobUrl;
+            s.onload = () => { URL.revokeObjectURL(blobUrl); resolve(); };
+            s.onerror = reject;
+            document.body.appendChild(s);
+        });
+
 
         let wait = 1;
         (function init() {
-            if (!Object.keys(aList[0]).length && wait < 5) {
+            if (typeof window.aList === "undefined" || (!Object.keys(window.aList[0]).length && wait < 5)) {
                 return setTimeout(init, 1000 * wait++);
             }
-            geofs.randomJobs = new RandomJobsMod(aList, aIndex, "0.8.6.1171");
+            geofs.randomJobs = new RandomJobsMod(window.aList, window.aIndex, "0.8.6.1171");
 
-            // Monkey-patch the buggy init method inherited from legacy RandomJobs that crashes on geofs.api.map.markerLayers
+            // Monkey-patch the buggy init method that crashes on geofs.api.map.markerLayers
             const _origInit = geofs.randomJobs.init.bind(geofs.randomJobs);
             geofs.randomJobs.init = function(ready) {
                 try {
@@ -370,7 +392,7 @@ function jobs() {
                     console.warn("RandomJobs: Bypassed markerLayers crash:", e);
                     this.aList.forEach((sList, s) => Object.keys(sList).forEach(icao => this.aIndex[s].addPoint(icao, ...sList[icao])));
                     $.getJSON(`${window.githubRepo}/icaos.json?${Date.now()}`, json => {
-                        json.forEach(e => aList.push(e));
+                        json.forEach(e => window.aList.push(e));
                         this.aHandler.init();
                         setInterval(() => this.update(), 1000);
                         ready();
@@ -381,6 +403,8 @@ function jobs() {
             geofs.randomJobs.init(() => new MainWindow(geofs.randomJobs).init());
         })();
     })();
+
+
     const style = document.createElement("style");
     style.textContent = `
         /* airline icon same size as text */
@@ -2084,7 +2108,21 @@ out skel qt;
 
     // Maritime Structures — additional sea-based 3D objects in the world
     function maritimeStructures () {
-        (() => {var msScript = document.createElement('script'); msScript.type="module"; msScript.src="https://raw.githack.com/CementAndRebar/GeoFS-Extra-Maritime-Structures/main/main.js";document.body.appendChild(msScript);})()
+        fetch("https://raw.githack.com/CementAndRebar/GeoFS-Extra-Maritime-Structures/main/main.js")
+            .then(res => res.text())
+            .then(code => {
+                // Initialize addons to prevent undefined ReferenceErrors after eval()
+                code = "window.addons = window.addons || {}; let addons = window.addons;\n" + code;
+                
+                // Redirect the button injection out of the cluttered lower bar to prevent overlap with Livery/Extra
+                code = code.replace(/geofs-ui-bottom/g, "geofs-ui-left");
+
+                // Execute inside an async wrapper to support top-level await natively
+                let msScript = document.createElement('script');
+                msScript.textContent = "(async function() { " + code + " \n})();";
+                document.body.appendChild(msScript);
+            })
+            .catch(e => console.error("Could not load Maritime Structures", e));
     }
 
     // Streetlights — renders streetlights at night on roads around airports
