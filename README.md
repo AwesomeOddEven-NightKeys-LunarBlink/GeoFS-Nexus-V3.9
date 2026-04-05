@@ -7,8 +7,8 @@
 >
 > 💥 **UI Layout & Camera Fixes**:
 > - **Bottom Bar Overlapping**: If the bottom bar looks "exploded" (too many icons), please **zoom out** your browser using `CTRL` + `-` or `CMD` + `-`.
-> - **Missing Gear/Flaps**: If you don't see the Gear or Flaps buttons in the bottom right, press `G` or `F` once to activate them.
-> - **Broken Camera**: If the camera view breaks, click the **CAMERA** button in the top menu and re-select **Follow Cam** to fix it.
+> - **Missing Gear/Flaps & Camera Fix**: If you don't see the Gear or Flaps buttons in the bottom right, press `G` or `F` once to activate them. If the camera breaks after doing this, click the **CAMERA** button in the top menu and re-select **Follow Cam** to fix it.
+
 
 
 # GeoFS Nexus V3.9
