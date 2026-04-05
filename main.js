@@ -321,14 +321,20 @@ if (typeof unsafeWindow === "undefined") {
 // =============================================================================
 
 function jobs() {
-    function loadScript(src) {
-        return new Promise((resolve, reject) => {
-            const script = document.createElement("script");
-            script.src = src;
-            script.onload = resolve;
-            script.onerror = () => reject(new Error(`Failed to load: ${src}`));
-            document.body.appendChild(script);
-        });
+    // We must fetch-and-eval (not inject <script src>) because geofs.lib.js declares
+    // `const aList` and `const aIndex` at top level. When loaded via <script src=>,
+    // top-level `const` is block-scoped to that script and never lands on `window`.
+    // By evaluating the text directly in this scope, all declarations become
+    // accessible to the rest of jobs() and to each other.
+    function fetchAndEval(src) {
+        return fetch(src)
+            .then(r => { if (!r.ok) throw new Error("HTTP " + r.status + ": " + src); return r.text(); })
+            .then(code => {
+                // Remove 'use strict' so top-level const/let/function hoist into
+                // the surrounding window scope as the original TM script expected.
+                code = code.replace(/^\s*['"]use strict['"]\s*;?\s*/m, "");
+                (0, eval)(code); // indirect eval → runs in global scope
+            });
     }
 
     (async function () {
@@ -348,7 +354,7 @@ function jobs() {
         ];
 
         for (const file of scripts) {
-            await loadScript(base + file);
+            await fetchAndEval(base + file);
         }
 
         // Set the repo base URL once all scripts are ready (used internally by the jobs mod)
@@ -356,12 +362,13 @@ function jobs() {
 
         let wait = 1;
         (function init() {
-            if (!Object.keys(aList[0]).length && wait < 5) {
+            // aList is now accessible because fetchAndEval landed it on window
+            if (typeof aList === "undefined" || (!Object.keys(aList[0]).length && wait < 5)) {
                 return setTimeout(init, 1000 * wait++);
             }
             geofs.randomJobs = new RandomJobsMod(aList, aIndex, "0.8.6.1171");
 
-            // Monkey-patch the buggy init method inherited from legacy RandomJobs that crashes on geofs.api.map.markerLayers
+            // Monkey-patch the buggy init method that crashes on geofs.api.map.markerLayers
             const _origInit = geofs.randomJobs.init.bind(geofs.randomJobs);
             geofs.randomJobs.init = function(ready) {
                 try {
@@ -381,6 +388,7 @@ function jobs() {
             geofs.randomJobs.init(() => new MainWindow(geofs.randomJobs).init());
         })();
     })();
+
     const style = document.createElement("style");
     style.textContent = `
         /* airline icon same size as text */
