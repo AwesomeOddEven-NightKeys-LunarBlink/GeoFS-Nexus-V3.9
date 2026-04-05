@@ -100,34 +100,41 @@ Toggle **Failures** in the addon menu to experience realistic system issues. If 
 
 ---
 
+## 📚 Sources and Contributors
+GeoFS Nexus is a massive collaborative effort, integrating the work of many talented developers within the Geo-FS community. Below is a comprehensive list of all the sources and individuals who have contributed to this project:
+
+### 🏗️ Core Engineering
+*   **AwesomeOddEven** - Lead architect, project vision, and core integration.
+*   **NightKeys** - UI design lead, glassmorphism implementation, and modern aesthetic overhaul.
+*   **LunarBlink** - Systems engineering, cross-addon compatibility, and optimization.
+
+### 🎙️ AI Air Traffic Control (ATC)
+*   **Milan Avramovic ([avramovic](https://github.com/avramovic))** - Developer of the [geofs-ai-atc](https://github.com/avramovic/geofs-ai-atc) system.
+*   **[Puter.js](https://js.puter.com/)** - AI engine for PuterJS GPT-powered ATC interactions.
+*   **[Vanilla Notify](https://github.com/avramovic/geofs-ai-atc/blob/master/vanilla-notify.min.js)** - Notification system used for real-time ATC communication feedback.
+
+### ✈️ Realism & Aircraft Systems
+*   **[geofs-pilot](https://github.com/geofs-pilot)** - Developer of the [Realism Pack Modded](https://github.com/geofs-pilot/realism-pack-modded), adding wingflex, clickable cockpits, and sonic booms.
+*   **[geofs-pilot](https://github.com/geofs-pilot)** - Developer of [GPWS](https://github.com/geofs-pilot/geofs-gpws-modified), [Cockpit Volume](https://github.com/geofs-pilot/geofs-cockpit-volume), and [Autoland Pro](https://github.com/geofs-pilot/Joystick-supported-autoland).
+*   **[Kolos26](https://github.com/kolos26)** - Creator of the original Livery Selector (integrated within Realism Pack).
+*   **[MeatBroc](https://github.com/meatbroc)** - Developer of the [Autothrottle](https://github.com/meatbroc/geofs-autothrottle) utility.
+*   **[Tylerbmusic](https://github.com/tylerbmusic)** - Contributor of [Landing Statistics](https://github.com/tylerbmusic/geofs-utilities), [Slew Mode](https://github.com/tylerbmusic/GeoFS-Slew-Mode), [Sky Dolly](https://github.com/tylerbmusic/GeoFS-Sky-Dolly), and high-quality audio resources.
+
+### 🏢 World Enhancement & Infrastructure
+*   **[Spice9](https://github.com/Spice9)** - Developer of the [Jetbridge System](https://github.com/Spice9/Geofs-Jetbridge) and animated airport objects.
+*   **[CementAndRebar](https://github.com/CementAndRebar)** - Developer of the [Extra Maritime Structures](https://github.com/CementAndRebar/GeoFS-Extra-Maritime-Structures) mod.
+*   **[JXT (af267)](https://github.com/af267)** - Provider of the [Extra Vehicles](https://github.com/af267/GeoFS-Extra-Vehicles) expansion pack.
+*   **[Tylerbmusic](https://github.com/tylerbmusic)** - Developer of [Taxiway Signs](https://github.com/tylerbmusic/GeoFS-Taxiway-Signs) and [Taxiway Lights/Lighting](https://github.com/tylerbmusic/GeoFS-Taxiway-Lights).
+
+### 🛠️ Key Tools & Fixes
+*   **[Scitor](https://github.com/scitor)** - Developer of [Random Jobs](https://github.com/scitor/GeoFS) career mode and mission generator.
+*   **[ZetaPossibly](https://github.com/ZetaPossibly)** - Developer of the [GeoFS Chat Fix](https://github.com/ZetaPossibly/GeoFS-Chat-Fix) tool.
+*   **[RadioactivePotato](https://github.com/RadioactivePotato)** - Developer of the [Ad Remover](https://github.com/RadioactivePotato/GeoFS-Ad-Remover) utility.
+
+### 🌟 Community Support
+*   **The Alpha Testers** - For their continuous feedback, bug reporting, and stress-testing.
+*   **Scitor, Kolos26, and JXT** - For their foundational scripts that paved the way for modern GeoFS modding.
+
 ---
-
-## 🌍 Resource Directory (External Addons)
-GeoFS Nexus dynamically loads these high-quality community scripts. 
-
-| Addon Category | Development Source |
-| :--- | :--- |
-| **Realism Mod** | [geofs-pilot/realism-pack-modded](https://raw.githack.com/geofs-pilot/realism-pack-modded/main/main.js) |
-| **AI ATC Service** | [avramovic/geofs-ai-atc](https://raw.githack.com/avramovic/geofs-ai-atc/master/airports.json) |
-| **Jetbridge System** | [Spice9/Geofs-Jetbridge](https://raw.githack.com/Spice9/Geofs-Jetbridge/main/jetbridge-main.js) |
-| **Autoland Pro** | [geofs-pilot/Joystick-supported-autoland](https://raw.githack.com/geofs-pilot/Joystick-supported-autoland/refs/heads/main/script.js) |
-| **Landing Statistics** | [tylerbmusic/geofs-utilities](https://raw.githack.com/tylerbmusic/geofs-utilities/refs/heads/main/userscript.js) |
-| **Sky Dolly Utility** | [tylerbmusic/GeoFS-Sky-Dolly](https://raw.githack.com/tylerbmusic/GeoFS-Sky-Dolly/main/userscript.js) |
-| **Maritime Structures** | [CementAndRebar/GeoFS-Extra-Maritime-Structures](https://raw.githack.com/CementAndRebar/GeoFS-Extra-Maritime-Structures/main/main.js) |
-| **Airport Signage** | [tylerbmusic/GeoFS-Taxiway-Signs](https://raw.githack.com/tylerbmusic/GeoFS-Taxiway-Signs/main/userscript.js) |
-| **Chat Fix Tool** | [ZetaPossibly/GeoFS-Chat-Fix](https://raw.githack.com/ZetaPossibly/GeoFS-Chat-Fix/refs/heads/main/fix_chat.js) |
-| **Ad Remover** | [RadioactivePotato/GeoFS-Ad-Remover](https://raw.githack.com/RadioactivePotato/GeoFS-Ad-Remover/main/GeoFS%20Ad%20Remover-0.1.user.js) |
-
----
-
-## ❤️ Special Thanks & Appreciation
-A project of this scale is only possible because of the incredible talent in the GeoF-S community. We want to extend a massive thank you to everyone who has contributed:
-
-- **AwesomeOddEven**, **NightKeys**, and **LunarBlink** for the core engineering and vision.
-- **Scitor**, **Kolos26**, and **JXT** for their foundational scripts that paved the way.
-- **Spice9**, **CementAndRebar**, **RadioactivePotato**, and **ZetaPossibly** for their specialized mods.
-- **Tylerbmusic** for providing the audio resources and utilities that make landing feel real.
-- **The Alpha Testers** and users who report bugs to keep the project soaring.
-
 *Disclaimer: This is a community-made project and is not officially affiliated with Geo-FS.*
 
