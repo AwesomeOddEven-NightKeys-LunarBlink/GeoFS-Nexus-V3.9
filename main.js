@@ -309,6 +309,35 @@ if (typeof unsafeWindow === "undefined") {
         #flightDataDisplay.hud-minimized {
             display: none !important;
         }
+
+        /* ── Modern Sliders ── */
+        .nexus-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(100,200,255,0.15);
+            outline: none;
+            margin: 8px 0;
+            cursor: pointer;
+        }
+        .nexus-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #50a0ff;
+            cursor: pointer;
+            border: 2px solid #0a1220;
+            box-shadow: 0 0 10px rgba(80,160,255,0.4);
+            transition: all 0.2s ease;
+        }
+        .nexus-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            background: #ffffff;
+            box-shadow: 0 0 15px rgba(80,160,255,0.6);
+        }
     `;
     document.head.appendChild(css);
 })();
@@ -1925,8 +1954,8 @@ function addonExecution () {
         // Toggle function exposed globally for the global key listener
         window.toggleNexusHud = toggleHud;
 
-        function hudCell(label, value, warnClass) {
-            return `<div class="hud-cell"><span class="hud-label">${label}</span><span class="hud-value ${warnClass || ''}">${value}</span></div>`;
+        function hudCell(label, value, warnClass, idClass) {
+            return `<div class="hud-cell"><span class="hud-label">${label}</span><span class="hud-value ${idClass || ''} ${warnClass || ''}">${value}</span></div>`;
         }
 
         setInterval(function() {
@@ -1935,57 +1964,106 @@ function addonExecution () {
             if (!y) {
                 y = document.createElement("div");
                 y.id = "flightDataDisplay";
+                // Create skeleton once
+                y.innerHTML = `
+                    <div class="hud-drag-handle">⋯⋯⋯</div>
+                    ${hudCell('KIAS', 'N/A', '', 'hud-kias')}
+                    ${hudCell('MACH', 'N/A', '', 'hud-mach')}
+                    ${hudCell('GS', 'N/A', '', 'hud-gs')}
+                    ${hudCell('ALT', 'N/A', '', 'hud-alt')}
+                    ${hudCell('AGL', 'N/A', '', 'hud-agl')}
+                    ${hudCell('HDG', 'N/A', '', 'hud-hdg')}
+                    ${hudCell('V/S', 'N/A', '', 'hud-vs')}
+                    ${hudCell('THR', 'N/A', '', 'hud-thr')}
+                    ${hudCell('AOA', 'N/A', '', 'hud-aoa')}
+                    ${hudCell('GSLOPE', 'N/A', '', 'hud-gslope')}
+                    ${hudCell('G', 'N/A', '', 'hud-g')}
+                    ${hudCell('OP', 'OFF', '', 'hud-op')}
+                    ${hudCell('CC', 'OFF', '', 'hud-cc')}
+                    ${hudCell('FUEL', 'N/A', '', 'hud-fuel')}
+                    <div class="hud-cell" style="grid-column: 1 / -1; margin-top: 6px; border-top: 1px solid rgba(100,200,255,0.1); padding-top: 8px;">
+                        <span class="hud-label" style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                            OP MULT <span id="op-mult-display" style="color: #fff; font-family: monospace; font-size: 12px; font-weight: bold;">${window.opMultiplier}x</span>
+                        </span>
+                        <input type="range" min="3" max="15" step="1" value="${window.opMultiplier}" 
+                               id="op-mult-slider" class="nexus-slider" 
+                               oninput="window.opMultiplier = parseInt(this.value); document.getElementById('op-mult-display').textContent = this.value + 'x';">
+                        <div style="display: flex; justify-content: space-between; font-size: 8px; color: rgba(100,200,255,0.4); margin-top: -2px;">
+                            <span>3x</span>
+                            <span>15x</span>
+                        </div>
+                    </div>
+                `;
                 document.body.appendChild(y);
                 applyDraggable(y, 'geofs-nexus-hud-pos');
             }
+            
             if (hudMinBtn) hudMinBtn.style.display = globalThis.hudVisible ? 'flex' : 'none';
             if (!globalThis.hudVisible || globalThis.hudMinimized || flight.recorder.playing) {
                 if (y) y.style.display = 'none';
                 return;
             }
-            const o = geofs.animation.values.kias ? geofs.animation.values.kias.toFixed(1) : "N/A";
-            const l = geofs.animation.values.mach ? geofs.animation.values.mach.toFixed(2) : "N/A";
-            const t = geofs.animation.values.groundSpeed ? geofs.animation.values.groundSpeed.toFixed(1) : "N/A";
-            const r = geofs.animation.values.altitude ? Math.round(geofs.animation.values.altitude) : "N/A";
-            const d = geofs.animation.values.heading360 ? Math.round(geofs.animation.values.heading360) : "N/A";
-            const $ = (void 0 !== geofs.animation.values.altitude && void 0 !== geofs.animation.values.groundElevationFeet && geofs.aircraft.instance.collisionPoints && geofs.aircraft.instance.collisionPoints.length >= 2)
+
+            // Calculations
+            const kias = geofs.animation.values.kias ? geofs.animation.values.kias.toFixed(1) : "N/A";
+            const mach = geofs.animation.values.mach ? geofs.animation.values.mach.toFixed(2) : "N/A";
+            const gs = geofs.animation.values.groundSpeed ? geofs.animation.values.groundSpeed.toFixed(1) : "N/A";
+            const alt = geofs.animation.values.altitude ? Math.round(geofs.animation.values.altitude) : "N/A";
+            const hdg = geofs.animation.values.heading360 ? Math.round(geofs.animation.values.heading360) : "N/A";
+            const agl = (void 0 !== geofs.animation.values.altitude && void 0 !== geofs.animation.values.groundElevationFeet && geofs.aircraft.instance.collisionPoints && geofs.aircraft.instance.collisionPoints.length >= 2)
                 ? Math.round(geofs.animation.values.altitude - geofs.animation.values.groundElevationFeet + 3.2808399 * geofs.aircraft.instance.collisionPoints[geofs.aircraft.instance.collisionPoints.length - 2].worldPosition[2])
                 : "N/A";
-            const s = void 0 !== geofs.animation.values.verticalSpeed ? Math.round(geofs.animation.values.verticalSpeed) : "N/A";
-            const p = (geofs.aircraft.instance.engine && !1 === geofs.aircraft.instance.engine.on) ? "OFF"
+            const vs = void 0 !== geofs.animation.values.verticalSpeed ? Math.round(geofs.animation.values.verticalSpeed) : "N/A";
+            const thr = (geofs.aircraft.instance.engine && !1 === geofs.aircraft.instance.engine.on) ? "OFF"
                 : void 0 !== geofs.animation.values.throttle
                     ? (geofs.animation.values.throttle < .005 && geofs.animation.values.throttle >= 0 ? "IDLE" : (100 * geofs.animation.values.throttle).toFixed(0) + "%")
                     : "N/A";
-            const c = void 0 !== geofs.aircraft.instance.angleOfAttackDeg ? geofs.aircraft.instance.angleOfAttackDeg.toFixed(1) : "N/A";
+            const aoa = void 0 !== geofs.aircraft.instance.angleOfAttackDeg ? geofs.aircraft.instance.angleOfAttackDeg.toFixed(1) : "N/A";
 
             window.DEGREES_TO_RAD = window.DEGREES_TO_RAD || .017453292519943295;
             window.RAD_TO_DEGREES = window.RAD_TO_DEGREES || 57.29577951308232;
 
-            let nav_slope;
-            if (typeof $ === 'number' && geofs.animation.getValue("NAV1Direction") && 600 !== geofs.animation.getValue("NAV1Distance")) {
-                nav_slope = ("to" === geofs.animation.getValue("NAV1Direction")
-                    ? (Math.atan(.3048 * $ / (geofs.animation.getValue("NAV1Distance") + 600)) * RAD_TO_DEGREES).toFixed(1)
-                    : (Math.atan(.3048 * $ / Math.abs(geofs.animation.getValue("NAV1Distance") - 600)) * RAD_TO_DEGREES).toFixed(1));
-            } else { nav_slope = "N/A"; }
+            let gslope;
+            if (typeof agl === 'number' && geofs.animation.getValue("NAV1Direction") && 600 !== geofs.animation.getValue("NAV1Distance")) {
+                gslope = ("to" === geofs.animation.getValue("NAV1Direction")
+                    ? (Math.atan(.3048 * agl / (geofs.animation.getValue("NAV1Distance") + 600)) * RAD_TO_DEGREES).toFixed(1)
+                    : (Math.atan(.3048 * agl / Math.abs(geofs.animation.getValue("NAV1Distance") - 600)) * RAD_TO_DEGREES).toFixed(1));
+            } else { gslope = "N/A"; }
 
-            const u = geofs.animation.values.loadFactor ? geofs.animation.values.loadFactor.toFixed(1) : "N/A";
-            const i = globalThis.isOverpowered === true ? "ON" : "OFF";
-            const e = globalThis.cycling === true ? "ON" : "OFF";
+            const loadFactor = geofs.animation.values.loadFactor ? geofs.animation.values.loadFactor.toFixed(1) : "N/A";
+            const opStatus = globalThis.isOverpowered === true ? "ON" : "OFF";
+            const ccStatus = globalThis.cycling === true ? "ON" : "OFF";
             const fuel = globalThis.fuelPercentage;
-            const b = void 0 !== fuel ? (0 === fuel ? "0%" : fuel < 1 ? "1%" : fuel.toFixed(0) + "%") : "N/A";
+            const fuelText = void 0 !== fuel ? (0 === fuel ? "0%" : fuel < 1 ? "1%" : fuel.toFixed(0) + "%") : "N/A";
 
+            // Warning classes
             const fuelWarn = (typeof fuel === 'number' && fuel < 15) ? (fuel < 5 ? 'danger' : 'warn') : '';
-            const gWarn = (parseFloat(u) > 4) ? 'danger' : (parseFloat(u) > 2.5 ? 'warn' : '');
-            const vsWarn = (typeof s === 'number' && s < -2000) ? 'danger' : (typeof s === 'number' && s < -1000 ? 'warn' : '');
+            const gWarn = (parseFloat(loadFactor) > 4) ? 'danger' : (parseFloat(loadFactor) > 2.5 ? 'warn' : '');
+            const vsWarn = (typeof vs === 'number' && vs < -2000) ? 'danger' : (typeof vs === 'number' && vs < -1000 ? 'warn' : '');
 
-            y.innerHTML = 
-                `<div class="hud-drag-handle">⋯⋯⋯</div>` +
-                hudCell('KIAS', o) + hudCell('MACH', l) + hudCell('GS', t) +
-                hudCell('ALT', r) + hudCell('AGL', $) + hudCell('HDG', d) +
-                hudCell('V/S', s, vsWarn) + hudCell('THR', p) + hudCell('AOA', c) +
-                hudCell('GSLOPE', nav_slope) + hudCell('G', u, gWarn) +
-                hudCell('OP', i, i === 'ON' ? 'warn' : '') + hudCell('CC', e) +
-                hudCell('FUEL', b, fuelWarn);
+            // Perform non-destructive updates
+            const update = (className, value, warn) => {
+                const el = y.querySelector('.' + className);
+                if (el) {
+                    el.textContent = value;
+                    el.className = `hud-value ${className} ${warn || ''}`;
+                }
+            };
+
+            update('hud-kias', kias);
+            update('hud-mach', mach);
+            update('hud-gs', gs);
+            update('hud-alt', alt);
+            update('hud-agl', agl);
+            update('hud-hdg', hdg);
+            update('hud-vs', vs, vsWarn);
+            update('hud-thr', thr);
+            update('hud-aoa', aoa);
+            update('hud-gslope', gslope);
+            update('hud-g', loadFactor, gWarn);
+            update('hud-op', opStatus, opStatus === 'ON' ? 'warn' : '');
+            update('hud-cc', ccStatus);
+            update('hud-fuel', fuelText, fuelWarn);
 
             y.style.display = 'grid';
         }, 100);
@@ -2073,7 +2151,8 @@ out skel qt;
     // Overpowered Engines — sets engine thrust to 6× and ceiling to 300,000 ft
     // Toggle with [Q]
     function opengines () {
-        function toggleAircraftProperties(){globalThis.isOverpowered=!1;let t={thrust:{},zeroThrustAltitude:null,zeroRPMAltitude:null},r=geofs?.aircraft?.instance?.aircraftRecord?.id||null,e=geofs.aircraft.instance.definition.mass;document.addEventListener("keydown",function(r){"q"!==r.key.toLowerCase()||r.ctrlKey||r.altKey||r.metaKey||(globalThis.isOverpowered?(function r(){if(geofs?.aircraft?.instance){let e=geofs.aircraft.instance;if(e.definition&&(null!==t.zeroThrustAltitude&&(e.definition.zeroThrustAltitude=t.zeroThrustAltitude),null!==t.zeroRPMAltitude&&(e.definition.zeroRPMAltitude=t.zeroRPMAltitude)),e.parts)for(let i in t.thrust){let u=e.parts[i];u?.thrust!==void 0&&(u.thrust=t.thrust[i].thrust,void 0!==u.afterBurnerThrust&&null!==t.thrust[i].afterBurnerThrust&&(u.afterBurnerThrust=t.thrust[i].afterBurnerThrust),void 0!==u.reverseThrust&&null!==t.thrust[i].reverseThrust&&(u.reverseThrust=t.thrust[i].reverseThrust))}}}(),globalThis.isOverpowered=!1,console.log("Aircraft properties set to normal.")):(function r(){if(geofs?.aircraft?.instance){let i=geofs.aircraft.instance;if(e=i.definition.mass,null===t.zeroThrustAltitude&&i.definition?.zeroThrustAltitude!==void 0&&(t.zeroThrustAltitude=i.definition.zeroThrustAltitude),null===t.zeroRPMAltitude&&i.definition?.zeroRPMAltitude!==void 0&&(t.zeroRPMAltitude=i.definition.zeroRPMAltitude),i.definition&&(i.definition.zeroThrustAltitude=3e5,i.definition.zeroRPMAltitude=3e5),i.parts)for(let u in i.parts){let s=i.parts[u];if(s?.thrust!==void 0){t.thrust[u]||(t.thrust[u]={thrust:s.thrust,afterBurnerThrust:s.afterBurnerThrust||null,reverseThrust:s.reverseThrust||null});let n,o,l;n=6*Number(t.thrust[u].thrust),o=null!==t.thrust[u].afterBurnerThrust?6*t.thrust[u].afterBurnerThrust:n;l=6*Number(t.thrust[u].reverseThrust),console.log(t.thrust),console.log(n),s.thrust=n,void 0!==s.afterBurnerThrust&&(s.afterBurnerThrust=o),void 0!==s.reverseThrust&&(s.reverseThrust=l)}}}}(),globalThis.isOverpowered=!0,console.log("Aircraft properties set to overpowered mode.")))}),console.log("Press 'Q' to toggle aircraft properties between normal and overpowered."),setInterval(()=>{let e=geofs?.aircraft?.instance?.aircraftRecord?.id||null;e!==r&&(console.log("Aircraft changed, resetting toggle."),t={thrust:{},zeroThrustAltitude:null,zeroRPMAltitude:null},globalThis.isOverpowered=!1,r=e)},500)}toggleAircraftProperties();
+        window.opMultiplier = window.opMultiplier || 6;
+        function toggleAircraftProperties(){globalThis.isOverpowered=!1;let t={thrust:{},zeroThrustAltitude:null,zeroRPMAltitude:null},r=geofs?.aircraft?.instance?.aircraftRecord?.id||null,e=geofs.aircraft.instance.definition.mass;document.addEventListener("keydown",function(r){"q"!==r.key.toLowerCase()||r.ctrlKey||r.altKey||r.metaKey||(globalThis.isOverpowered?(function r(){if(geofs?.aircraft?.instance){let e=geofs.aircraft.instance;if(e.definition&&(null!==t.zeroThrustAltitude&&(e.definition.zeroThrustAltitude=t.zeroThrustAltitude),null!==t.zeroRPMAltitude&&(e.definition.zeroRPMAltitude=t.zeroRPMAltitude)),e.parts)for(let i in t.thrust){let u=e.parts[i];u?.thrust!==void 0&&(u.thrust=t.thrust[i].thrust,void 0!==u.afterBurnerThrust&&null!==t.thrust[i].afterBurnerThrust&&(u.afterBurnerThrust=t.thrust[i].afterBurnerThrust),void 0!==u.reverseThrust&&null!==t.thrust[i].reverseThrust&&(u.reverseThrust=t.thrust[i].reverseThrust))}}}(),globalThis.isOverpowered=!1,console.log("Aircraft properties set to normal.")):(function r(){if(geofs?.aircraft?.instance){let i=geofs.aircraft.instance;if(e=i.definition.mass,null===t.zeroThrustAltitude&&i.definition?.zeroThrustAltitude!==void 0&&(t.zeroThrustAltitude=i.definition.zeroThrustAltitude),null===t.zeroRPMAltitude&&i.definition?.zeroRPMAltitude!==void 0&&(t.zeroRPMAltitude=i.definition.zeroRPMAltitude),i.definition&&(i.definition.zeroThrustAltitude=3e5,i.definition.zeroRPMAltitude=3e5),i.parts)for(let u in i.parts){let s=i.parts[u];if(s?.thrust!==void 0){t.thrust[u]||(t.thrust[u]={thrust:s.thrust,afterBurnerThrust:s.afterBurnerThrust||null,reverseThrust:s.reverseThrust||null});let n,o,l;let mult = window.opMultiplier || 6; n=mult*Number(t.thrust[u].thrust),o=null!==t.thrust[u].afterBurnerThrust?mult*t.thrust[u].afterBurnerThrust:n;l=mult*Number(t.thrust[u].reverseThrust),console.log(t.thrust),console.log(n),s.thrust=n,void 0!==s.afterBurnerThrust&&(s.afterBurnerThrust=o),void 0!==s.reverseThrust&&(s.reverseThrust=l)}}}}(),globalThis.isOverpowered=!0,console.log("Aircraft properties set to overpowered mode ("+window.opMultiplier+"x).")))}),console.log("Press 'Q' to toggle aircraft properties between normal and overpowered."),setInterval(()=>{let e=geofs?.aircraft?.instance?.aircraftRecord?.id||null;e!==r&&(console.log("Aircraft changed, resetting toggle."),t={thrust:{},zeroThrustAltitude:null,zeroRPMAltitude:null},globalThis.isOverpowered=!1,r=e)},500)}toggleAircraftProperties();
     };
 
     // Pushback — adds a driveable pushback tug for most aircraft
