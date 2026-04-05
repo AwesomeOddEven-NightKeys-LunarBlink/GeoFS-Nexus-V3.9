@@ -132,7 +132,7 @@ GeoFS Nexus is a massive collaborative effort, integrating the work of many tale
 *   **[RadioactivePotato](https://github.com/RadioactivePotato)** - Developer of the [Ad Remover](https://github.com/RadioactivePotato/GeoFS-Ad-Remover) utility.
 
 ### 🌟 Community Support
-*   **The Alpha Testers** - For their continuous feedback, bug reporting, and stress-testing.
+*   **SALhik** - For his continuous feedback, bug reporting, and stress-testing.
 *   **Scitor, Kolos26, and JXT** - For their foundational scripts that paved the way for modern GeoFS modding.
 
 ---
