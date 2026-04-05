@@ -2109,14 +2109,30 @@ out skel qt;
             .then(code => {
                 // Initialize addons to prevent undefined ReferenceErrors after eval()
                 code = "window.addons = window.addons || {}; let addons = window.addons;\n" + code;
-                
-                // Redirect the button injection out of the cluttered lower bar to prevent overlap with Livery/Extra
-                code = code.replace(/geofs-ui-bottom/g, "geofs-ui-left");
 
                 // Execute inside an async wrapper to support top-level await natively
                 let msScript = document.createElement('script');
                 msScript.textContent = "(async function() { " + code + " \n})();";
                 document.body.appendChild(msScript);
+                
+                // Ensure the button (landButton) follows the Extras button in the bottom bar to prevent overlap
+                const moveButton = setInterval(() => {
+                    const landButton = document.getElementById('landButton');
+                    const extrasButton = document.getElementById('extras-button');
+                    const bottomBar = document.querySelector('.geofs-ui-bottom');
+                    if (landButton && bottomBar) {
+                        if (extrasButton) {
+                            extrasButton.parentNode.insertBefore(landButton, extrasButton.nextSibling);
+                        } else {
+                            bottomBar.appendChild(landButton);
+                        }
+                        // Ensure it has the standard button classes for flow
+                        landButton.classList.add('mdl-button', 'mdl-js-button', 'geofs-f-standard-ui');
+                        clearInterval(moveButton);
+                        console.log("Nexus: Maritime Structures button repositioned.");
+                    }
+                }, 500);
+                setTimeout(() => clearInterval(moveButton), 20000); // Failsafe
             })
             .catch(e => console.error("Could not load Maritime Structures", e));
     }
