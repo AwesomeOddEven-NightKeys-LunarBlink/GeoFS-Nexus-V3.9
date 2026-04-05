@@ -321,22 +321,11 @@ if (typeof unsafeWindow === "undefined") {
 // =============================================================================
 
 function jobs() {
-    // We must fetch-and-eval (not inject <script src>) because geofs.lib.js declares
-    // `const aList` and `const aIndex` at top level. When loaded via <script src=>,
-    // top-level `const` is block-scoped to that script and never lands on `window`.
-    // By evaluating the text directly in this scope, all declarations become
-    // accessible to the rest of jobs() and to each other.
-    function fetchAndEval(src) {
-        return fetch(src)
-            .then(r => { if (!r.ok) throw new Error("HTTP " + r.status + ": " + src); return r.text(); })
-            .then(code => {
-                // Remove 'use strict' so top-level const/let/function hoist into
-                // the surrounding window scope as the original TM script expected.
-                code = code.replace(/^\s*['"]use strict['"]\s*;?\s*/m, "");
-                (0, eval)(code); // indirect eval → runs in global scope
-            });
-    }
-
+    // Scripts are fetched as text, concatenated, then injected as ONE <script> tag.
+    // This is required because geofs.lib.js uses top-level `const aList` / `const aIndex`,
+    // and each separate <script src> or eval() call creates its own isolated lexical scope —
+    // meaning those consts would be invisible to manager.js, window.js, etc.
+    // By joining everything into one script tag, all declarations share a single scope.
     (async function () {
         const base = "https://raw.githack.com/scitor/GeoFS/master/";
 
@@ -353,20 +342,46 @@ function jobs() {
             "randomJobs/flightplan.page.js?0.8.6.1171"
         ];
 
-        for (const file of scripts) {
-            await fetchAndEval(base + file);
-        }
+        // Fetch all in parallel, then concatenate preserving order
+        const texts = await Promise.all(
+            scripts.map(file =>
+                fetch(base + file)
+                    .then(r => r.ok ? r.text() : Promise.reject("HTTP " + r.status + " " + file))
+                    .then(code => code.replace(/^\s*['"]use strict['"]\s*;?\s*/m, ""))
+            )
+        );
 
-        // Set the repo base URL once all scripts are ready (used internally by the jobs mod)
+        // Set the repo base URL so scripts can self-reference it at eval time
         window.githubRepo = "https://raw.githubusercontent.com/scitor/GeoFS/master";
+
+        // Expose key names onto window — const in a <script> is NEVER a window property,
+        // so we must assign them explicitly after the const declarations run.
+        const windowExports = `
+window.aList = aList;
+window.aIndex = aIndex;
+window.RandomJobsMod = RandomJobsMod;
+window.MainWindow = MainWindow;
+window.AirportHandler = AirportHandler;
+window.FlightHandler = FlightHandler;
+window.JobGenerator = JobGenerator;
+`;
+        const blob = new Blob([texts.join("\n;\n") + "\n;\n" + windowExports], {type: "application/javascript"});
+        const blobUrl = URL.createObjectURL(blob);
+        await new Promise((resolve, reject) => {
+            const s = document.createElement("script");
+            s.src = blobUrl;
+            s.onload = () => { URL.revokeObjectURL(blobUrl); resolve(); };
+            s.onerror = reject;
+            document.body.appendChild(s);
+        });
+
 
         let wait = 1;
         (function init() {
-            // aList is now accessible because fetchAndEval landed it on window
-            if (typeof aList === "undefined" || (!Object.keys(aList[0]).length && wait < 5)) {
+            if (typeof window.aList === "undefined" || (!Object.keys(window.aList[0]).length && wait < 5)) {
                 return setTimeout(init, 1000 * wait++);
             }
-            geofs.randomJobs = new RandomJobsMod(aList, aIndex, "0.8.6.1171");
+            geofs.randomJobs = new RandomJobsMod(window.aList, window.aIndex, "0.8.6.1171");
 
             // Monkey-patch the buggy init method that crashes on geofs.api.map.markerLayers
             const _origInit = geofs.randomJobs.init.bind(geofs.randomJobs);
@@ -377,7 +392,7 @@ function jobs() {
                     console.warn("RandomJobs: Bypassed markerLayers crash:", e);
                     this.aList.forEach((sList, s) => Object.keys(sList).forEach(icao => this.aIndex[s].addPoint(icao, ...sList[icao])));
                     $.getJSON(`${window.githubRepo}/icaos.json?${Date.now()}`, json => {
-                        json.forEach(e => aList.push(e));
+                        json.forEach(e => window.aList.push(e));
                         this.aHandler.init();
                         setInterval(() => this.update(), 1000);
                         ready();
@@ -388,6 +403,7 @@ function jobs() {
             geofs.randomJobs.init(() => new MainWindow(geofs.randomJobs).init());
         })();
     })();
+
 
     const style = document.createElement("style");
     style.textContent = `
