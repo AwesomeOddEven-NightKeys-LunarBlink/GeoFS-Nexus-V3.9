@@ -201,7 +201,7 @@ if (typeof unsafeWindow === "undefined") {
             top: 70px;
             right: 20px;
             width: 230px;
-            background: linear-gradient(135deg, rgba(15,25,35,0.85), rgba(25,45,65,0.8));
+            background: linear-gradient(135deg, rgba(10,18,30,0.45), rgba(20,35,55,0.40));
             padding: 14px 16px;
             border-radius: 12px;
             font-family: 'Roboto Mono', 'Consolas', monospace;
@@ -213,10 +213,10 @@ if (typeof unsafeWindow === "undefined") {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 5px 10px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(0,229,255,0.2);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(0,229,255,0.1);
             cursor: move;
             user-select: none;
         }
@@ -225,8 +225,28 @@ if (typeof unsafeWindow === "undefined") {
         .hud-value { color: #fff; font-size: 13px; }
         .hud-value.warn { color: #ffb347; }
         .hud-value.danger { color: #ff6b6b; }
-        .hud-minimized { width: 40px !important; height: 40px !important; display: flex !important; align-items: center; justify-content: center; overflow: hidden; }
-        .hud-minimized .hud-cell, .hud-minimized .hud-label, .hud-minimized .hud-drag-handle { display: none; }
+        
+        #hudMinimizeBtn {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            width: 32px;
+            height: 32px;
+            background: rgba(10,18,30,0.5);
+            border: 1px solid rgba(0,229,255,0.3);
+            border-radius: 6px;
+            color: #00e5ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: move;
+            z-index: 100001;
+            backdrop-filter: blur(5px);
+            font-size: 18px;
+            transition: background 0.2s;
+        }
+        #hudMinimizeBtn:hover { background: rgba(0,229,255,0.2); }
+        .hud-hidden { display: none !important; }
 
         /* ── Nexus Hub ── */
         .nexus-hub-panel {
@@ -418,16 +438,69 @@ function addonExecution() {
 
     // Info HUD
     (function info() {
+        let isDragging = false; let dragTarget = null; let dragMoved = false;
+        let dragOffsetX = 0; let dragOffsetY = 0;
         globalThis.hudVisible = true; globalThis.hudMinimized = false;
-        function toggleHud() { globalThis.hudMinimized = !globalThis.hudMinimized; const h = document.getElementById('flightDataDisplay'); h && h.classList.toggle('hud-minimized', globalThis.hudMinimized); }
-        window.toggleNexusHud = toggleHud;
+
+        function applyDraggable(el, storageKey) {
+            if (storageKey) {
+                const saved = localStorage.getItem(storageKey);
+                if (saved) {
+                    const pos = JSON.parse(saved);
+                    el.style.left = pos.left; el.style.top = pos.top;
+                    el.style.right = 'auto'; el.style.bottom = 'auto';
+                }
+            }
+            el.addEventListener('mousedown', (e) => {
+                isDragging = true; dragTarget = el; dragMoved = false;
+                dragOffsetX = e.clientX - el.getBoundingClientRect().left;
+                dragOffsetY = e.clientY - el.getBoundingClientRect().top;
+                e.preventDefault();
+            });
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging || !dragTarget) return;
+            dragMoved = true;
+            dragTarget.style.left = (e.clientX - dragOffsetX) + 'px';
+            dragTarget.style.top = (e.clientY - dragOffsetY) + 'px';
+            dragTarget.style.right = 'auto'; dragTarget.style.bottom = 'auto';
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isDragging && dragTarget && dragMoved) {
+                const key = dragTarget.id === 'hudMinimizeBtn' ? 'nexus-hud-btn-pos' : 'nexus-hud-pos';
+                localStorage.setItem(key, JSON.stringify({ left: dragTarget.style.left, top: dragTarget.style.top }));
+            }
+            isDragging = false; dragTarget = null;
+        });
+
+        const hudBtn = document.createElement('div');
+        hudBtn.id = 'hudMinimizeBtn'; hudBtn.innerHTML = '▣';
+        document.body.appendChild(hudBtn);
+        applyDraggable(hudBtn, 'nexus-hud-btn-pos');
+
+        hudBtn.addEventListener('click', () => { if (!dragMoved) { globalThis.hudMinimized = !globalThis.hudMinimized; } });
+
+        window.toggleNexusHud = () => { globalThis.hudMinimized = !globalThis.hudMinimized; };
+
         setInterval(() => {
             if (!geofs.animation.values) return;
             let hud = document.getElementById("flightDataDisplay");
-            if (!hud) { hud = document.createElement("div"); hud.id="flightDataDisplay"; document.body.appendChild(hud); hud.innerHTML='<div class="hud-cell"><span class="hud-label">KIAS</span><span class="hud-value" id="hud-kias">0</span></div><div class="hud-cell"><span class="hud-label">ALT</span><span class="hud-value" id="hud-alt">0</span></div>'; }
-            if (flight.recorder.playing) { hud.style.display='none'; return; } hud.style.display='grid';
-            document.getElementById('hud-kias').innerText = geofs.animation.values.kias ? geofs.animation.values.kias.toFixed(1) : "0";
-            document.getElementById('hud-alt').innerText = geofs.animation.values.altitude ? Math.round(geofs.animation.values.altitude) : "0";
+            if (!hud) {
+                hud = document.createElement("div"); hud.id="flightDataDisplay"; document.body.appendChild(hud);
+                hud.innerHTML='<div class="hud-cell"><span class="hud-label">KIAS</span><span class="hud-value" id="hud-kias">0</span></div><div class="hud-cell"><span class="hud-label">ALT</span><span class="hud-value" id="hud-alt">0</span></div>';
+                applyDraggable(hud, 'nexus-hud-pos');
+            }
+            const isVisible = globalThis.hudVisible && !globalThis.hudMinimized && !flight.recorder.playing;
+            hud.style.display = isVisible ? 'grid' : 'none';
+            hudBtn.style.display = (globalThis.hudVisible && !flight.recorder.playing) ? 'flex' : 'none';
+            hudBtn.innerHTML = globalThis.hudMinimized ? '◈' : '▣';
+            
+            if (isVisible) {
+                document.getElementById('hud-kias').innerText = geofs.animation.values.kias ? geofs.animation.values.kias.toFixed(1) : "0";
+                document.getElementById('hud-alt').innerText = geofs.animation.values.altitude ? Math.round(geofs.animation.values.altitude) : "0";
+            }
         }, 100);
     })();
 
