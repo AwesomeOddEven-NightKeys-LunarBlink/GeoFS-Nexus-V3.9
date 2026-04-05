@@ -2170,27 +2170,6 @@ out skel qt;
         }
     });
 
-    function addonExecution () {
-        try { info(); } catch(e) { console.error("Nexus: info module failed", e); }
-        try { failuresAndFuel(); } catch(e) { console.error("Nexus: failuresAndFuel module failed", e); }
-        try { aiAtc(); } catch(e) { console.error("Nexus: aiAtc module failed", e); }
-        try { jetbridge(); } catch(e) { console.error("Nexus: jetbridge module failed", e); }
-        try { scenery(); } catch(e) { console.error("Nexus: scenery module failed", e); }
-        try { vehicles(); } catch(e) { console.error("Nexus: vehicles module failed", e); }
-        try { fpv(); } catch(e) { console.error("Nexus: fpv module failed", e); }
-        try { gpws(); } catch(e) { console.error("Nexus: gpws module failed", e); }
-        try { maritimeStructures(); } catch(e) { console.error("Nexus: maritimeStructures module failed", e); }
-        try { aircraftImprovements(); } catch(e) { console.error("Nexus: aircraftImprovements module failed", e); }
-        try { lights(); } catch(e) { console.error("Nexus: lights module failed", e); }
-        try { clouds(); } catch(e) { console.error("Nexus: clouds module failed", e); }
-        try { vasi(); } catch(e) { console.error("Nexus: vasi module failed", e); }
-        try { terrain(); } catch(e) { console.error("Nexus: terrain module failed", e); }
-        try { carriers(); } catch(e) { console.error("Nexus: carriers module failed", e); }
-        try { cameras(); } catch(e) { console.error("Nexus: cameras module failed", e); }
-        try { navigation(); } catch(e) { console.error("Nexus: navigation module failed", e); }
-        try { effects(); } catch(e) { console.error("Nexus: effects module failed", e); }
-        console.log("Nexus: All modules initialized.");
-    }
 
     ai();
     adblock();
@@ -2200,7 +2179,7 @@ out skel qt;
     chatFix();
     volume();
     fpv();
-    failuresAndFuel();
+
     gpws();
     stats();
     opengines();
