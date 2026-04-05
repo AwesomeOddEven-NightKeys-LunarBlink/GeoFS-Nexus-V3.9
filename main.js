@@ -2236,12 +2236,46 @@ out skel qt;
 // that the GeoFS UI is fully rendered and all global APIs are available.
 // =============================================================================
 
+// ── Robust entry point ──────────────────────────────────────────────────────
+// Tries to call menus() once the preference panel is in the DOM.
+// Falls back to a MutationObserver retry if the panel isn't ready yet.
+function tryInjectMenus() {
+    const panel = document.querySelector('.geofs-list.geofs-toggle-panel.geofs-preference-list');
+    if (panel) {
+        menus();
+        return;
+    }
+    // Panel not found yet — watch for it
+    const obs = new MutationObserver(() => {
+        if (document.querySelector('.geofs-list.geofs-toggle-panel.geofs-preference-list')) {
+            obs.disconnect();
+            menus();
+        }
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+}
+
+let _nexusStarted = false;
+function startNexus() {
+    if (_nexusStarted) return;
+    _nexusStarted = true;
+    tryInjectMenus();
+    addonExecution();
+}
+
+// Primary trigger: wait for geofs.aircraft.instance (normal GeoFS load)
 const waitForGeoFS = setInterval(() => {
     if (typeof geofs !== "undefined" && geofs.aircraft && geofs.aircraft.instance) {
         clearInterval(waitForGeoFS);
-        setTimeout(() => {
-            menus();
-            addonExecution();
-        }, 1000);
+        clearTimeout(_nexusFallback);
+        setTimeout(startNexus, 1000);
     }
 }, 100);
+
+// Fallback trigger: if the aircraft instance check never resolves within 15 s,
+// start anyway so the UI and addons still load.
+const _nexusFallback = setTimeout(() => {
+    clearInterval(waitForGeoFS);
+    console.warn('GeoFS Nexus: aircraft instance not detected — starting with fallback.');
+    startNexus();
+}, 15000);
