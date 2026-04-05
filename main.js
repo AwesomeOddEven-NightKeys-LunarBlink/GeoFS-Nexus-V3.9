@@ -310,33 +310,40 @@ if (typeof unsafeWindow === "undefined") {
             display: none !important;
         }
 
-        /* ── Modern Sliders ── */
-        .nexus-slider {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 4px;
-            border-radius: 2px;
-            background: rgba(100,200,255,0.15);
-            outline: none;
-            margin: 8px 0;
-            cursor: pointer;
+        /* ── OP Multiplier Blocks ── */
+        .nexus-block-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 8px;
+            justify-content: space-between;
         }
-        .nexus-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: #50a0ff;
+        .nexus-block {
+            flex: 1 0 calc(20% - 4px);
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(100,200,255,0.08);
+            border: 1px solid rgba(100,200,255,0.15);
+            border-radius: 4px;
+            color: rgba(140,220,255,0.8);
+            font-size: 10px;
+            font-weight: bold;
             cursor: pointer;
-            border: 2px solid #0a1220;
-            box-shadow: 0 0 10px rgba(80,160,255,0.4);
             transition: all 0.2s ease;
+            user-select: none;
         }
-        .nexus-slider::-webkit-slider-thumb:hover {
-            transform: scale(1.15);
-            background: #ffffff;
-            box-shadow: 0 0 15px rgba(80,160,255,0.6);
+        .nexus-block:hover {
+            background: rgba(100,200,255,0.2);
+            border-color: rgba(100,200,255,0.4);
+            color: #fff;
+        }
+        .nexus-block.active {
+            background: rgba(80,160,255,0.3);
+            border-color: #50a0ff;
+            color: #fff;
+            box-shadow: 0 0 8px rgba(80,160,255,0.35);
         }
     `;
     document.head.appendChild(css);
@@ -1958,6 +1965,22 @@ function addonExecution () {
             return `<div class="hud-cell"><span class="hud-label">${label}</span><span class="hud-value ${idClass || ''} ${warnClass || ''}">${value}</span></div>`;
         }
 
+        // Global helper for the block selector
+        window.setOpMult = function(val) {
+            window.opMultiplier = parseInt(val);
+            const display = document.getElementById('op-mult-display');
+            if (display) display.textContent = val + 'x';
+            // Update active state in UI
+            const blocks = document.querySelectorAll('.nexus-block');
+            blocks.forEach(b => {
+                if (parseInt(b.textContent) === window.opMultiplier) {
+                    b.classList.add('active');
+                } else {
+                    b.classList.remove('active');
+                }
+            });
+        };
+
         setInterval(function() {
             if (!geofs.animation.values) return;
             let y = document.getElementById("flightDataDisplay");
@@ -1966,7 +1989,7 @@ function addonExecution () {
                 y.id = "flightDataDisplay";
                 // Create skeleton once
                 y.innerHTML = `
-                    <div class="hud-drag-handle">⋯⋯⋯</div>
+                    <div class="hud-drag-handle" style="grid-column: 1 / -1;">⋯⋯⋯</div>
                     ${hudCell('KIAS', 'N/A', '', 'hud-kias')}
                     ${hudCell('MACH', 'N/A', '', 'hud-mach')}
                     ${hudCell('GS', 'N/A', '', 'hud-gs')}
@@ -1981,16 +2004,16 @@ function addonExecution () {
                     ${hudCell('OP', 'OFF', '', 'hud-op')}
                     ${hudCell('CC', 'OFF', '', 'hud-cc')}
                     ${hudCell('FUEL', 'N/A', '', 'hud-fuel')}
-                    <div class="hud-cell" style="grid-column: 1 / -1; margin-top: 6px; border-top: 1px solid rgba(100,200,255,0.1); padding-top: 8px;">
-                        <span class="hud-label" style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-                            OP MULT <span id="op-mult-display" style="color: #fff; font-family: monospace; font-size: 12px; font-weight: bold;">${window.opMultiplier}x</span>
+                    
+                    <!-- OP MULT Selector -->
+                    <div class="hud-op-settings" style="grid-column: 1 / -1; margin-top: 8px; border-top: 1px solid rgba(100,200,255,0.1); padding-top: 10px;">
+                        <span class="hud-label" style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            OP MULT <span id="op-mult-display" style="color: #fff; font-family: monospace; font-size: 11px; font-weight: bold; background: rgba(80,160,255,0.2); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(80,160,255,0.3);">${window.opMultiplier}x</span>
                         </span>
-                        <input type="range" min="3" max="15" step="1" value="${window.opMultiplier}" 
-                               id="op-mult-slider" class="nexus-slider" 
-                               oninput="window.opMultiplier = parseInt(this.value); document.getElementById('op-mult-display').textContent = this.value + 'x';">
-                        <div style="display: flex; justify-content: space-between; font-size: 8px; color: rgba(100,200,255,0.4); margin-top: -2px;">
-                            <span>3x</span>
-                            <span>15x</span>
+                        <div class="nexus-block-container">
+                            ${[3,4,5,6,7,8,9,10,11,12,13,14,15].map(m => 
+                                `<div class="nexus-block ${m === window.opMultiplier ? 'active' : ''}" onclick="window.setOpMult(${m})">${m}</div>`
+                            ).join('')}
                         </div>
                     </div>
                 `;
@@ -2066,6 +2089,13 @@ function addonExecution () {
             update('hud-fuel', fuelText, fuelWarn);
 
             y.style.display = 'grid';
+            
+            // To prevent layout regressions for dynamic addons (GPWS, Slew, etc.), 
+            // ensure the OP Multiplier section is always the last child in the grid.
+            const opSection = y.querySelector('.hud-op-settings');
+            if (opSection && opSection.nextElementSibling) {
+                y.appendChild(opSection);
+            }
         }, 100);
     };
 
